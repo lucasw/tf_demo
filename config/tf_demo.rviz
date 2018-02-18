@@ -6,6 +6,7 @@ Panels:
       Expanded:
         - /Global Options1
         - /Status1
+        - /Grid1
         - /Grid1/Offset1
         - /TF1
         - /Axes1
@@ -50,7 +51,7 @@ Visualization Manager:
         Z: 0
       Plane: XY
       Plane Cell Count: 10
-      Reference Frame: <Fixed Frame>
+      Reference Frame: map
       Value: true
     - Class: rviz/MarkerArray
       Enabled: true
@@ -73,19 +74,28 @@ Visualization Manager:
       Frame Timeout: 5
       Frames:
         All Enabled: true
-        frame1:
+        base:
+          Value: true
+        elbow:
+          Value: true
+        finger:
           Value: true
         map:
           Value: true
-      Marker Scale: 2
+        wrist:
+          Value: true
+      Marker Scale: 1.5
       Name: TF
       Show Arrows: true
       Show Axes: true
       Show Names: true
       Tree:
         map:
-          frame1:
-            {}
+          base:
+            elbow:
+              wrist:
+                finger:
+                  {}
       Update Interval: 0
       Value: true
     - Class: rviz/Axes
@@ -120,25 +130,25 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/Orbit
-      Distance: 3.66654205
+      Distance: 4.29720211
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.0599999987
         Stereo Focal Distance: 1
         Swap Stereo Eyes: false
         Value: false
       Focal Point:
-        X: 0.020245336
-        Y: 0.583655655
-        Z: -0.293999791
+        X: 1.12376153
+        Y: -0.0708599091
+        Z: 0.806045353
       Focal Shape Fixed Size: true
       Focal Shape Size: 0.0500000007
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.00999999978
-      Pitch: 1.07979655
+      Pitch: 0.27479732
       Target Frame: <Fixed Frame>
       Value: Orbit (rviz)
-      Yaw: 4.62357569
+      Yaw: 3.04858708
     Saved: ~
 Window Geometry:
   Displays:
@@ -156,5 +166,5 @@ Window Geometry:
   Views:
     collapsed: true
   Width: 1127
-  X: 25
-  Y: 87
+  X: 736
+  Y: 24

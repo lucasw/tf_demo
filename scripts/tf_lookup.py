@@ -16,13 +16,13 @@ tl = tf2_ros.TransformListener(tf_buffer)
 
 br = tf2_ros.TransformBroadcaster()
 ts = TransformStamped()
-ts.header.frame_id = "map"
 ts.transform.rotation.w = 1.0
 ts.transform.translation.x = 1.0
 ts.transform.translation.y = 1.0
 
 offset = rospy.get_param("~offset", -1.0)
 parent = rospy.get_param("~parent", "map")
+ts.header.frame_id = parent
 child = rospy.get_param("~child", "frame1")
 ts.child_frame_id = rospy.get_param("~child_old", "frame1_old")
 
