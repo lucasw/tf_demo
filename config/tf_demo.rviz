@@ -8,7 +8,6 @@ Panels:
         - /Status1
         - /Grid1
         - /Grid1/Offset1
-        - /TF1
         - /Axes1
       Splitter Ratio: 0.5
     Tree Height: 507
@@ -80,6 +79,8 @@ Visualization Manager:
           Value: true
         finger:
           Value: true
+        flyer:
+          Value: true
         map:
           Value: true
         wrist:
@@ -96,15 +97,17 @@ Visualization Manager:
               wrist:
                 finger:
                   {}
+          flyer:
+            {}
       Update Interval: 0
       Value: true
     - Class: rviz/Axes
-      Enabled: false
+      Enabled: true
       Length: 0.5
       Name: Axes
       Radius: 0.100000001
-      Reference Frame: <Fixed Frame>
-      Value: false
+      Reference Frame: finger
+      Value: true
   Enabled: true
   Global Options:
     Background Color: 48; 48; 48
@@ -130,25 +133,25 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/Orbit
-      Distance: 4.29720211
+      Distance: 3.82408762
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.0599999987
         Stereo Focal Distance: 1
         Swap Stereo Eyes: false
         Value: false
       Focal Point:
-        X: 1.12376153
-        Y: -0.0708599091
-        Z: 0.806045353
+        X: 0.661553502
+        Y: 0.0572827682
+        Z: 2.10470533
       Focal Shape Fixed Size: true
       Focal Shape Size: 0.0500000007
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.00999999978
-      Pitch: 0.27479732
+      Pitch: 0.804797292
       Target Frame: <Fixed Frame>
       Value: Orbit (rviz)
-      Yaw: 3.04858708
+      Yaw: 5.4849596
     Saved: ~
 Window Geometry:
   Displays:
