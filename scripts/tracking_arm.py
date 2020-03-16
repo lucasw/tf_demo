@@ -20,6 +20,7 @@ def quat_from_quat_array(quat_array):
     quat.w = quat_array[3]
     return quat
 
+
 def quat_from_euler(roll, pitch, yaw):
     quat_array = transformations.quaternion_from_euler(roll, pitch, yaw)
     return quat_from_quat_array(quat_array)
@@ -122,4 +123,3 @@ while not rospy.is_shutdown():
         # rospy.loginfo(target_trans)
     else:
         rospy.logwarn("can't transform")
-
