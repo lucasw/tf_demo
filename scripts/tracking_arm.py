@@ -25,6 +25,7 @@ def quat_from_euler(roll, pitch, yaw):
     quat_array = transformations.quaternion_from_euler(roll, pitch, yaw)
     return quat_from_quat_array(quat_array)
 
+
 rospy.init_node('tracking_arm')
 
 tf_buffer = tf2_ros.Buffer(cache_time=rospy.Duration(20))
