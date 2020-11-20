@@ -5,6 +5,7 @@
 import rospy
 import tf2_ros
 import tf2_py as tf2
+import traceback
 
 from geometry_msgs.msg import TransformStamped
 
@@ -32,12 +33,12 @@ while not rospy.is_shutdown():
     try:
         trans = tf_buffer.lookup_transform(parent, child, lookup_time)
     except tf2.LookupException as ex:
-        print lookup_time.to_sec()
-        print ex
+        print(lookup_time.to_sec())
+        print(traceback.format_exc())
         continue
     except tf2.ExtrapolationException as ex:
-        print lookup_time.to_sec()
-        print ex
+        print(lookup_time.to_sec())
+        print(traceback.format_exc())
         continue
     # print trans.transform.translation.x
 
