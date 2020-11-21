@@ -13,13 +13,13 @@ ts1.transform.rotation.w = 1.0
 # TODO(lucasw) does the authority matter at all?  Could it be set to anything?
 buffer_core.set_transform(ts1, "default_authority")
 
-# print dir(buffer_core)
+# print(dir(buffer_core))
 # why no lookup_transform(
 a = buffer_core.lookup_transform_core('map', 'frame1', rospy.Time(0))
-print a
+print(a)
 # ((2.71828183, 0.0, 0.0), (0.0, 0.0, 0.0, 1.0))
 b = buffer_core.lookup_transform_core('frame1', 'map', rospy.Time(0))
-print b
+print(b)
 # ((-2.71828183, 0.0, 0.0), (0.0, 0.0, 0.0, 1.0))
 
 ts2 = TransformStamped()
@@ -32,4 +32,4 @@ ts2.transform.translation.y = 0.5
 ts2.transform.rotation.w = 1.0
 buffer_core.set_transform(ts2, "default_authority")
 
-print buffer_core.lookup_transform_core('map', 'frame2', rospy.Time(0))
+print(buffer_core.lookup_transform_core('map', 'frame2', rospy.Time(0)))

@@ -33,14 +33,14 @@ while not rospy.is_shutdown():
     try:
         trans = tf_buffer.lookup_transform(parent, child, lookup_time)
     except tf2.LookupException as ex:
-        print(lookup_time.to_sec())
-        print(traceback.format_exc())
+        rospy.logwarn_throttle(5.0, lookup_time.to_sec())
+        rospy.logwarn_throttle(5.0, traceback.format_exc())
         continue
     except tf2.ExtrapolationException as ex:
-        print(lookup_time.to_sec())
-        print(traceback.format_exc())
+        rospy.logwarn_throttle(5.0, lookup_time.to_sec())
+        rospy.logwarn_throttle(5.0, traceback.format_exc())
         continue
-    # print trans.transform.translation.x
+    rospy.loginfo_throttle(5.0, trans.transform.translation.x)
 
     ts.transform = trans.transform
     ts.header.stamp = lookup_time
