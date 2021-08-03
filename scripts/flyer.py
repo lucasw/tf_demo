@@ -49,9 +49,9 @@ while not rospy.is_shutdown():
     t = cur_time.to_sec() * 0.5
     # t = 0
 
-    ts.transform.translation.x = 3.0 + 4.0 * math.cos(t * 0.1) + 1.5 * math.cos(t * 0.471)
-    ts.transform.translation.y = 1.0 + 6.0 * math.sin(t * 0.1)
-    ts.transform.translation.z = 3.0 + math.cos(t * 0.061)
+    ts.transform.translation.x = 1.5 + 2.0 * math.cos(t * 0.1) + 0.75 * math.cos(t * 0.471)
+    ts.transform.translation.y = 0.5 + 3.0 * math.sin(t * 0.1)
+    ts.transform.translation.z = 1.5 + math.cos(t * 0.061)
 
     roll = 10.0 * math.pi * math.cos(t * 0.05413) + 4.0 * math.cos(t * 0.023)
     yaw = 20.0 * math.pi * math.cos(t * 0.015413) + 4.0 * math.pi * math.cos(t * 0.00523)

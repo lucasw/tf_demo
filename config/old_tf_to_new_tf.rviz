@@ -6,6 +6,7 @@ Panels:
       Expanded:
         - /Global Options1
         - /Status1
+        - /Path1
       Splitter Ratio: 0.5
     Tree Height: 995
   - Class: rviz/Selection
@@ -77,6 +78,30 @@ Visualization Manager:
             {}
       Update Interval: 0
       Value: true
+    - Alpha: 1
+      Buffer Length: 1
+      Class: rviz/Path
+      Color: 25; 255; 0
+      Enabled: true
+      Head Diameter: 0.30000001192092896
+      Head Length: 0.20000000298023224
+      Length: 0.30000001192092896
+      Line Style: Lines
+      Line Width: 0.029999999329447746
+      Name: Path
+      Offset:
+        X: 0
+        Y: 0
+        Z: 0
+      Pose Color: 255; 85; 255
+      Pose Style: None
+      Queue Size: 10
+      Radius: 0.029999999329447746
+      Shaft Diameter: 0.10000000149011612
+      Shaft Length: 0.10000000149011612
+      Topic: /trajectory
+      Unreliable: false
+      Value: true
   Enabled: true
   Global Options:
     Background Color: 48; 48; 48
@@ -105,7 +130,7 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/Orbit
-      Distance: 19.494367599487305
+      Distance: 8.503645896911621
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
         Stereo Focal Distance: 1
@@ -113,17 +138,17 @@ Visualization Manager:
         Value: false
       Field of View: 0.7853981852531433
       Focal Point:
-        X: 0.6239480972290039
-        Y: 0.24636848270893097
-        Z: 2.171285629272461
+        X: 0.8399351239204407
+        Y: 0.6309331059455872
+        Z: 0.7184746265411377
       Focal Shape Fixed Size: true
       Focal Shape Size: 0.05000000074505806
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Pitch: 0.6653989553451538
+      Pitch: 0.9453990459442139
       Target Frame: <Fixed Frame>
-      Yaw: 5.923564910888672
+      Yaw: 5.828573703765869
     Saved: ~
 Window Geometry:
   Displays:
@@ -141,5 +166,5 @@ Window Geometry:
   Views:
     collapsed: false
   Width: 2501
-  X: 496
-  Y: 135
+  X: 495
+  Y: 33
