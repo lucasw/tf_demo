@@ -1,6 +1,8 @@
 #!/usr/bin/env python
 # Lucas Walter
 # February 2018
+#
+# Move a tf around in loops
 
 import math
 import rospy
@@ -37,16 +39,24 @@ ts.child_frame_id = 'flyer'
 
 vel = 0.1
 
+roll = 0.0
+yaw = 0.0
+pitch = 0.0
+
 while not rospy.is_shutdown():
     rospy.sleep(0.01)
     cur_time = rospy.Time.now()
     t = cur_time.to_sec() * 0.5
     # t = 0
 
-    ts.transform.translation.x = 5.0 + 4.0 * math.cos(t * 0.1) + 1.5 * math.cos(t * 0.471)
+    ts.transform.translation.x = 3.0 + 4.0 * math.cos(t * 0.1) + 1.5 * math.cos(t * 0.471)
     ts.transform.translation.y = 1.0 + 6.0 * math.sin(t * 0.1)
-    ts.transform.translation.z = 7.0 + math.cos(t * 0.031)
-    # ts.transform.rotation = quat_from_euler(0, 0, base_angle)
+    ts.transform.translation.z = 3.0 + math.cos(t * 0.061)
+
+    roll = 10.0 * math.pi * math.cos(t * 0.05413) + 4.0 * math.cos(t * 0.023)
+    yaw = 20.0 * math.pi * math.cos(t * 0.015413) + 4.0 * math.pi * math.cos(t * 0.00523)
+    roll = 2.0 * math.pi * math.cos(t * 0.015413) + 4.0 * math.pi * math.cos(t * 0.02523)
+    ts.transform.rotation = quat_from_euler(roll, pitch, yaw)
 
     ts.header.stamp = cur_time
     br.sendTransform(ts)
