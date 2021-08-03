@@ -1,0 +1,44 @@
+<?xml version="1.0"?>
+<launch>
+  <arg name="use_rviz" default="false" />
+
+  <node name="flyer" pkg="tf_demo" type="flyer.py" output="screen" />
+
+  <!-- TODO(lucaw) maybe the old tf script could handle an array of offsets? -->
+  <node name="old_tf_to_new_tf1" pkg="tf_demo" type="old_tf_to_new_tf.py" output="screen" >
+    <param name="child1" value="flyer" />
+    <param name="offset1" value="-2.0" />
+    <param name="child2" value="flyer_old1" />
+  </node>
+
+  <node name="old_tf_to_new_tf2" pkg="tf_demo" type="old_tf_to_new_tf.py" output="screen" >
+    <param name="child1" value="flyer" />
+    <param name="offset1" value="-4.0" />
+    <param name="child2" value="flyer_old2" />
+  </node>
+
+  <node name="old_tf_to_new_tf3" pkg="tf_demo" type="old_tf_to_new_tf.py" output="screen" >
+    <param name="child1" value="flyer" />
+    <param name="offset1" value="-6.0" />
+    <param name="child2" value="flyer_old3" />
+  </node>
+
+  <node name="rviz" pkg="rviz" type="rviz"
+    args="-d $(find tf_demo)/config/old_tf_to_new_tf.rviz"
+    if="$(arg use_rviz)"/>
+
+  <node name="tf_path" pkg="tf_demo" type="tf_path.py" output="screen" >
+    <param name="parent" value="map" />
+    <param name="child" value="flyer" />
+    <param name="update_rate" value="5.0" />
+    <param name="cache_time" value="10.0" />
+  </node>
+
+  <!--node name="tf_trail" pkg="hector_trajectory_server" type="hector_trajectory_server"
+    output="screen" >
+    <param name="name_target_frame_name" value="map" />
+    <param name="source_frame_name" value="flyer" />
+    <param name="trajectory_publish_rate" value="4.0" />
+  </node-->
+
+</launch>
