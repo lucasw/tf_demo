@@ -27,12 +27,14 @@ offset = rospy.get_param("~offset1", -1.0)
 parent = rospy.get_param("~parent1", "map")
 child = rospy.get_param("~child1", "frame1")
 
+update_rate = rospy.get_param("~update_rate", 20.0)
+
 offset2 = rospy.get_param("~offset2", 0.0)
 ts.header.frame_id = rospy.get_param("parent2", parent)
 ts.child_frame_id = rospy.get_param("~child2", child + "_b")
 
 while not rospy.is_shutdown():
-    rospy.sleep(0.01)
+    rospy.sleep(1.0 / update_rate)
     cur_time = rospy.Time.now()
     lookup_time = cur_time + rospy.Duration(offset)
     try:

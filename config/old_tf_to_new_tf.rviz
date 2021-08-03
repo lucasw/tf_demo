@@ -60,7 +60,11 @@ Visualization Manager:
         All Enabled: true
         flyer:
           Value: true
-        flyer_old:
+        flyer_old1:
+          Value: true
+        flyer_old2:
+          Value: true
+        flyer_old3:
           Value: true
         map:
           Value: true
@@ -74,18 +78,22 @@ Visualization Manager:
         map:
           flyer:
             {}
-          flyer_old:
+          flyer_old1:
+            {}
+          flyer_old2:
+            {}
+          flyer_old3:
             {}
       Update Interval: 0
       Value: true
-    - Alpha: 1
+    - Alpha: 0.4000000059604645
       Buffer Length: 1
       Class: rviz/Path
       Color: 25; 255; 0
       Enabled: true
-      Head Diameter: 0.30000001192092896
-      Head Length: 0.20000000298023224
-      Length: 0.30000001192092896
+      Head Diameter: 0.03999999910593033
+      Head Length: 0.07999999821186066
+      Length: 0.10000000149011612
       Line Style: Lines
       Line Width: 0.029999999329447746
       Name: Path
@@ -93,13 +101,13 @@ Visualization Manager:
         X: 0
         Y: 0
         Z: 0
-      Pose Color: 255; 85; 255
-      Pose Style: None
+      Pose Color: 164; 0; 0
+      Pose Style: Arrows
       Queue Size: 10
-      Radius: 0.029999999329447746
-      Shaft Diameter: 0.10000000149011612
-      Shaft Length: 0.10000000149011612
-      Topic: /trajectory
+      Radius: 0.009999999776482582
+      Shaft Diameter: 0.019999999552965164
+      Shaft Length: 0.07999999821186066
+      Topic: /path
       Unreliable: false
       Value: true
   Enabled: true
@@ -130,7 +138,7 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/Orbit
-      Distance: 8.503645896911621
+      Distance: 2.629852771759033
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
         Stereo Focal Distance: 1
@@ -138,17 +146,17 @@ Visualization Manager:
         Value: false
       Field of View: 0.7853981852531433
       Focal Point:
-        X: 0.8399351239204407
-        Y: 0.6309331059455872
-        Z: 0.7184746265411377
+        X: 0.5486401319503784
+        Y: -0.19729167222976685
+        Z: 4.0540242195129395
       Focal Shape Fixed Size: true
       Focal Shape Size: 0.05000000074505806
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Pitch: 0.9453990459442139
+      Pitch: 1.2547961473464966
       Target Frame: <Fixed Frame>
-      Yaw: 5.828573703765869
+      Yaw: 1.5835756063461304
     Saved: ~
 Window Geometry:
   Displays:
