@@ -5,51 +5,110 @@
 # Look up a transform between parent and child, then republish
 # with a new child
 
+import copy
+
 import rospy
 import tf2_ros
 import tf2_py as tf2
-import traceback
-
+# import traceback
+from ddynamic_reconfigure_python.ddynamic_reconfigure import DDynamicReconfigure
 from geometry_msgs.msg import TransformStamped
 
 
-rospy.init_node('old_tf_to_new_tf')
+class OldTfToNewTf(object):
+    def __init__(self):
+        cache_time = rospy.get_param("~cache_time", 30.0)
+        self.tf_buffer = tf2_ros.Buffer(cache_time=rospy.Duration(cache_time))
+        self.tl = tf2_ros.TransformListener(self.tf_buffer)
 
-cache_time = rospy.get_param("~cache_time", 30.0)
-tf_buffer = tf2_ros.Buffer(cache_time=rospy.Duration(cache_time))
-tl = tf2_ros.TransformListener(tf_buffer)
+        self.br = tf2_ros.TransformBroadcaster()
 
-br = tf2_ros.TransformBroadcaster()
-ts = TransformStamped()
-ts.transform.rotation.w = 1.0
+        update_rate = rospy.get_param("~update_rate", 20.0)
 
-offset = rospy.get_param("~offset1", -1.0)
-parent = rospy.get_param("~parent1", "map")
-child = rospy.get_param("~child1", "frame1")
+        self.last_lookup_failed = None
+        self.last_lookup_time = None
 
-update_rate = rospy.get_param("~update_rate", 20.0)
+        self.config = None
+        self.ddr = DDynamicReconfigure("")
+        self.ddr.add_variable("lookup_time_offset", "offset the lookup time", 0.0, -10.0, 10.0)
+        self.ddr.add_variable("lookup_time_most_recent", "use the most recent tf", True)
+        self.ddr.add_variable("lookup_parent", "lookup parent", "map")
+        self.ddr.add_variable("lookup_child", "lookup child", "child")
+        self.ddr.add_variable("broadcast_time_offset", "offset the broadcast time", 0.0, -10.0, 10.0)
+        self.ddr.add_variable("broadcast_parent", "broadcast parent", "map")
+        self.ddr.add_variable("broadcast_child", "broadcast child", "child2")
+        # TODO(lucasw) zero roll, pitch, yaw?
+        self.ddr.add_variable("zero_rotation", "zero out rotation", False)
+        self.ddr.add_variable("zero_x", "zero out x", False)
+        self.ddr.add_variable("zero_y", "zero out y", False)
+        self.ddr.add_variable("zero_z", "zero out z", False)
+        self.ddr.start(self.config_callback)
 
-offset2 = rospy.get_param("~offset2", 0.0)
-ts.header.frame_id = rospy.get_param("parent2", parent)
-ts.child_frame_id = rospy.get_param("~child2", child + "_b")
+        # collect some transforms:
+        rospy.sleep(1.0)
 
-while not rospy.is_shutdown():
-    rospy.sleep(1.0 / update_rate)
-    cur_time = rospy.Time.now()
-    lookup_time = cur_time + rospy.Duration(offset)
-    try:
-        trans = tf_buffer.lookup_transform(parent, child, lookup_time)
-    except tf2.LookupException as ex:
-        # TODO(lucasw) only warn on edge
-        rospy.logwarn_throttle(5.0, lookup_time.to_sec())
-        rospy.logwarn_throttle(5.0, traceback.format_exc())
-        continue
-    except tf2.ExtrapolationException as ex:
-        rospy.logwarn_throttle(5.0, lookup_time.to_sec())
-        rospy.logwarn_throttle(5.0, traceback.format_exc())
-        continue
-    # rospy.loginfo_throttle(5.0, trans.transform.translation.x)
+        self.timer = rospy.Timer(rospy.Duration(1.0 / update_rate), self.update)
 
-    ts.transform = trans.transform
-    ts.header.stamp = cur_time + rospy.Duration(offset2)
-    br.sendTransform(ts)
+    def config_callback(self, config, level):
+        self.config = config
+        return config
+
+    def update(self, event):
+        config = copy.deepcopy(self.config)
+        if config is None:
+            return
+
+        ts = TransformStamped()
+        ts.transform.rotation.w = 1.0
+        ts.header.frame_id = config.broadcast_parent
+        ts.child_frame_id = config.broadcast_child
+
+        cur_time = event.current_real
+        if config.lookup_time_most_recent:
+            lookup_time = rospy.Time(0)
+        else:
+            lookup_time = cur_time + rospy.Duration(config)
+
+        try:
+            trans = self.tf_buffer.lookup_transform(config.lookup_parent, config.lookup_child, lookup_time)
+        except (tf2.LookupException, tf2.ExtrapolationException) as ex:
+            if self.last_lookup_failed is not True:
+                rospy.logwarn("lookup time: {}".format(lookup_time.to_sec()))
+                rospy.logwarn(ex)
+                # rospy.logwarn(traceback.format_exc())
+                self.last_lookup_failed = True
+            return
+        if self.last_lookup_failed is not False:
+            rospy.logwarn("now looking up {} to {}".format(trans.header.frame_id, trans.child_frame_id))
+        self.last_lookup_failed = False
+
+        if trans.header.stamp == self.last_lookup_time:
+            return
+        self.last_lookup_time = trans.header.stamp
+
+        # rospy.loginfo_throttle(5.0, trans.transform.translation.x)
+
+        ts.transform = trans.transform
+        ts.header.stamp = trans.header.stamp + rospy.Duration(config.broadcast_time_offset)
+
+        if config.zero_rotation:
+            ts.transform.rotation.x = 0.0
+            ts.transform.rotation.y = 0.0
+            ts.transform.rotation.z = 0.0
+            ts.transform.rotation.w = 1.0
+        if config.zero_x:
+            ts.transform.translation.x = 0.0
+        if config.zero_y:
+            ts.transform.translation.y = 0.0
+        if config.zero_z:
+            ts.transform.translation.z = 0.0
+
+        rospy.loginfo_once(ts)
+
+        self.br.sendTransform(ts)
+
+
+if __name__ == '__main__':
+    rospy.init_node('old_tf_to_new_tf')
+    node = OldTfToNewTf()
+    rospy.spin()
