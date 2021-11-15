@@ -71,7 +71,7 @@ class OldTfToNewTf(object):
 
         try:
             trans = self.tf_buffer.lookup_transform(config.lookup_parent, config.lookup_child, lookup_time)
-        except (tf2.LookupException, tf2.ExtrapolationException) as ex:
+        except (tf2.ConnectivityException, tf2.LookupException, tf2.ExtrapolationException) as ex:
             if self.last_lookup_failed is not True:
                 rospy.logwarn("lookup time: {}".format(lookup_time.to_sec()))
                 rospy.logwarn(ex)
