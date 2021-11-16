@@ -57,3 +57,8 @@ include_directories(
 # target_link_libraries(rqt_dr_single_node
 #   ${catkin_LIBRARIES}
 # )
+
+install(PROGRAMS
+   scripts/old_tf_to_new_tf.py
+   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+)
