@@ -103,7 +103,7 @@ class OldTfToNewTf(object):
         if config.zero_z:
             ts.transform.translation.z = 0.0
 
-        rospy.loginfo_once(ts)
+        rospy.logdebug_once(ts)
 
         self.br.sendTransform(ts)
 
