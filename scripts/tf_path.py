@@ -33,12 +33,8 @@ while not rospy.is_shutdown():
     lookup_time = rospy.Time(0)
     try:
         trans = tf_buffer.lookup_transform(parent, child, lookup_time)
-    except tf2.LookupException as ex:
+    except (tf2.LookupException, tf2.ConnectivityException, tf2.ExtrapolationException) as ex:
         # TODO(lucasw) only warn on edge
-        rospy.logwarn_throttle(5.0, lookup_time.to_sec())
-        rospy.logwarn_throttle(5.0, traceback.format_exc())
-        continue
-    except tf2.ExtrapolationException as ex:
         rospy.logwarn_throttle(5.0, lookup_time.to_sec())
         rospy.logwarn_throttle(5.0, traceback.format_exc())
         continue
