@@ -6,9 +6,12 @@ project(tf_demo)
 ## is used, also find other catkin packages
 find_package(catkin REQUIRED COMPONENTS
   dynamic_reconfigure
+  geometry_msgs
+  roscpp
   roslint
   rospy
   tf2_ros
+  visualization_msgs
 )
 
 roslint_python()
@@ -29,7 +32,11 @@ roslint_python()
 catkin_package(
 #  INCLUDE_DIRS include
 #  LIBRARIES rqt_dr_single
-#  CATKIN_DEPENDS rospy rqt_gui_py
+  CATKIN_DEPENDS
+  dynamic_reconfigure
+  geometry_msgs
+  roscpp
+  visualization_msgs
 #  DEPENDS system_lib
 )
 
@@ -59,6 +66,12 @@ include_directories(
 # )
 
 install(PROGRAMS
+   scripts/buffer_core_demo.py
+   scripts/dueling_transforms.py
+   scripts/flip_flop.py
+   scripts/flyer.py
    scripts/old_tf_to_new_tf.py
+   scripts/tf_path.py
+   scripts/tracking_arm.py
    DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
