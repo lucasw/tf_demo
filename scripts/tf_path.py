@@ -50,7 +50,8 @@ class TfPath(object):
         pose.pose.orientation = tf.transform.rotation
         self.path.poses.append(pose)
 
-        if (tf.header.stamp - self.path.poses[0].header.stamp).to_sec() > self.cache_time:
+        test_time = event.current_real
+        if (test_time - self.path.poses[0].header.stamp).to_sec() > self.cache_time:
             self.path.poses = self.path.poses[1:]
 
         self.path.header.stamp = tf.header.stamp
