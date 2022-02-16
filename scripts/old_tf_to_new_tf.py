@@ -73,13 +73,13 @@ class OldTfToNewTf(object):
             trans = self.tf_buffer.lookup_transform(config.lookup_parent, config.lookup_child, lookup_time)
         except (tf2.ConnectivityException, tf2.LookupException, tf2.ExtrapolationException) as ex:
             if self.last_lookup_failed is not True:
-                rospy.logwarn("lookup time: {}".format(lookup_time.to_sec()))
-                rospy.logwarn(ex)
+                rospy.logwarn_throttle(2.0, f"lookup time: {lookup_time.to_sec():0.2f}")
+                rospy.logwarn_throttle(2.0, ex)
                 # rospy.logwarn(traceback.format_exc())
                 self.last_lookup_failed = True
             return
         if self.last_lookup_failed is not False:
-            rospy.logwarn("now looking up {} to {}".format(trans.header.frame_id, trans.child_frame_id))
+            rospy.logwarn_throttle(2.0, f"now looking up {trans.header.frame_id} to {trans.child_frame_id}")
         self.last_lookup_failed = False
 
         if trans.header.stamp == self.last_lookup_time:
