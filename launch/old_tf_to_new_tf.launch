@@ -5,22 +5,22 @@
   <node name="flyer" pkg="tf_demo" type="flyer.py" output="screen" />
 
   <!-- TODO(lucaw) maybe the old tf script could handle an array of offsets? -->
-  <node name="old_tf_to_new_tf1" pkg="tf_demo" type="old_tf_to_new_tf.py" output="screen" >
-    <param name="child1" value="flyer" />
-    <param name="offset1" value="-2.0" />
-    <param name="child2" value="flyer_old1" />
+  <node name="old_tf_to_new_tf1" pkg="tf_demo" type="old_tf_to_new_tf" output="screen" >
+    <param name="lookup_child" value="flyer" />
+    <param name="broadcast_child" value="flyer_old1" />
+    <param name="zero_rotation" value="true" />
   </node>
 
-  <node name="old_tf_to_new_tf2" pkg="tf_demo" type="old_tf_to_new_tf.py" output="screen" >
-    <param name="child1" value="flyer" />
-    <param name="offset1" value="-4.0" />
-    <param name="child2" value="flyer_old2" />
+  <node name="old_tf_to_new_tf2" pkg="tf_demo" type="old_tf_to_new_tf" output="screen" >
+    <param name="lookup_child" value="flyer" />
+    <param name="broadcast_child" value="flyer_old2" />
+    <param name="zero_z" value="true" />
   </node>
 
   <node name="old_tf_to_new_tf3" pkg="tf_demo" type="old_tf_to_new_tf.py" output="screen" >
-    <param name="child1" value="flyer" />
-    <param name="offset1" value="-6.0" />
-    <param name="child2" value="flyer_old3" />
+    <param name="lookup_child" value="flyer" />
+    <param name="broadcast_child" value="flyer_old3" />
+    <param name="zero_y" value="true" />
   </node>
 
   <node name="rviz" pkg="rviz" type="rviz"

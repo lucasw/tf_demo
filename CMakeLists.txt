@@ -5,7 +5,7 @@ project(tf_demo)
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
 ## is used, also find other catkin packages
 find_package(catkin REQUIRED COMPONENTS
-  dynamic_reconfigure
+  ddynamic_reconfigure
   geometry_msgs
   roscpp
   roslint
@@ -13,6 +13,9 @@ find_package(catkin REQUIRED COMPONENTS
   tf2_ros
   visualization_msgs
 )
+
+set(ROSLINT_CPP_OPTS "--extensions=cpp,h,hpp" "--filter=-whitespace/braces")
+roslint_cpp()
 
 roslint_python()
 ## Uncomment this if the package has a setup.py. This macro ensures
@@ -33,11 +36,11 @@ catkin_package(
 #  INCLUDE_DIRS include
 #  LIBRARIES rqt_dr_single
   CATKIN_DEPENDS
-  dynamic_reconfigure
+  ddynamic_reconfigure
   geometry_msgs
   roscpp
+  tf2_ros
   visualization_msgs
-#  DEPENDS system_lib
 )
 
 ###########
@@ -48,22 +51,18 @@ include_directories(
   ${catkin_INCLUDE_DIRS}
 )
 
-## Declare a cpp library
-# add_library(rqt_dr_single
-#   src/${PROJECT_NAME}/rqt_dr_single.cpp
-# )
+add_executable(old_tf_to_new_tf
+  src/old_tf_to_new_tf.cpp
+)
 
-## Declare a cpp executable
-# add_executable(rqt_dr_single_node src/rqt_dr_single_node.cpp)
+target_link_libraries(old_tf_to_new_tf ${catkin_LIBRARIES})
 
-## Add cmake target dependencies of the executable/library
-## as an example, message headers may need to be generated before nodes
-# add_dependencies(rqt_dr_single ${PROJECT_NAME}_gencfg)
-
-## Specify libraries to link a library or executable target against
-# target_link_libraries(rqt_dr_single_node
-#   ${catkin_LIBRARIES}
-# )
+install(TARGETS
+  old_tf_to_new_tf
+  ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+  LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+  RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+)
 
 install(PROGRAMS
    scripts/buffer_core_demo.py

@@ -67,7 +67,7 @@ class OldTfToNewTf(object):
         if config.lookup_time_most_recent:
             lookup_time = rospy.Time(0)
         else:
-            lookup_time = cur_time + rospy.Duration(config)
+            lookup_time = cur_time + rospy.Duration(config.lookup_time_offset)
 
         try:
             trans = self.tf_buffer.lookup_transform(config.lookup_parent, config.lookup_child, lookup_time)
