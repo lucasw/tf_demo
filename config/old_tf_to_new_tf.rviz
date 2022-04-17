@@ -6,7 +6,8 @@ Panels:
       Expanded:
         - /Global Options1
         - /Status1
-        - /Path1
+        - /Axes1
+        - /Axes2
       Splitter Ratio: 0.5
     Tree Height: 995
   - Class: rviz/Selection
@@ -110,6 +111,24 @@ Visualization Manager:
       Topic: /path
       Unreliable: false
       Value: true
+    - Alpha: 0.699999988079071
+      Class: rviz/Axes
+      Enabled: true
+      Length: 0.5
+      Name: Axes
+      Radius: 0.07999999821186066
+      Reference Frame: flyer_old1
+      Show Trail: false
+      Value: true
+    - Alpha: 1
+      Class: rviz/Axes
+      Enabled: true
+      Length: 0.6000000238418579
+      Name: Axes
+      Radius: 0.10000000149011612
+      Reference Frame: flyer
+      Show Trail: false
+      Value: true
   Enabled: true
   Global Options:
     Background Color: 48; 48; 48
@@ -138,7 +157,7 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/Orbit
-      Distance: 2.629852771759033
+      Distance: 3.8837695121765137
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
         Stereo Focal Distance: 1
@@ -146,17 +165,17 @@ Visualization Manager:
         Value: false
       Field of View: 0.7853981852531433
       Focal Point:
-        X: 0.5486401319503784
-        Y: -0.19729167222976685
-        Z: 4.0540242195129395
+        X: 1.3918230533599854
+        Y: 0.7872312068939209
+        Z: 1.7168195247650146
       Focal Shape Fixed Size: true
       Focal Shape Size: 0.05000000074505806
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Pitch: 1.2547961473464966
+      Pitch: 0.43479740619659424
       Target Frame: <Fixed Frame>
-      Yaw: 1.5835756063461304
+      Yaw: 0.6885764598846436
     Saved: ~
 Window Geometry:
   Displays:
