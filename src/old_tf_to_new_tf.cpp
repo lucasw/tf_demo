@@ -17,6 +17,7 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #include <ddynamic_reconfigure/ddynamic_reconfigure.h>
 #include <geometry_msgs/TransformStamped.h>
 #include <memory>
+#include <tf2_geometry_msgs/tf2_geometry_msgs.h>
 #include <tf2_ros/transform_broadcaster.h>
 #include <tf2_ros/transform_listener.h>
 #include <string>
@@ -44,7 +45,11 @@ class OldTfToNewTf
   double broadcast_time_offset_;
   std::string broadcast_parent_ = "map";
   std::string broadcast_child_ = "child2";
+
   bool zero_rotation_ = false;
+  bool zero_roll_ = false;
+  bool zero_pitch_ = false;
+  bool zero_yaw_ = false;
   bool zero_x_ = false;
   bool zero_y_ = false;
   bool zero_z_ = false;
@@ -91,7 +96,25 @@ class OldTfToNewTf
       ts_out.transform.rotation.y = 0.0;
       ts_out.transform.rotation.z = 0.0;
       ts_out.transform.rotation.w = 1.0;
+    } else if (zero_roll_ || zero_pitch_ || zero_yaw_) {
+      tf2::Quaternion quat;
+      tf2::fromMsg(ts_out.transform.rotation, quat);
+      tf2::Matrix3x3 rot(quat);
+      double roll, pitch, yaw;
+      rot.getRPY(roll, pitch, yaw);
+      if (zero_roll_) {
+        roll = 0.0;
+      }
+      if (zero_pitch_) {
+        pitch = 0.0;
+      }
+      if (zero_yaw_) {
+        yaw = 0.0;
+      }
+      quat.setRPY(roll, pitch, yaw);
+      ts_out.transform.rotation = tf2::toMsg(quat);
     }
+
     if (zero_x_) {
       ts_out.transform.translation.x = 0.0;
     }
@@ -126,8 +149,11 @@ public:
                                    "offset the broadcast time", -10.0, 10.0);
     ddr_->registerVariable<std::string>("broadcast_parent", &broadcast_parent_, std::string("broadcast parent"));
     ddr_->registerVariable<std::string>("broadcast_child", &broadcast_child_, std::string("broadcast child"));
-    // TODO(lucasw) zero roll, pitch, yaw?
+    // zero_rotation is same as zero_roll/pitch/yaw all combined
     ddr_->registerVariable<bool>("zero_rotation", &zero_rotation_, "zero out rotation", false, true);
+    ddr_->registerVariable<bool>("zero_roll", &zero_roll_, "zero out roll", false, true);
+    ddr_->registerVariable<bool>("zero_pitch", &zero_pitch_, "zero out pitch", false, true);
+    ddr_->registerVariable<bool>("zero_yaw", &zero_yaw_, "zero out yaw", false, true);
     ddr_->registerVariable<bool>("zero_x", &zero_x_, "zero out x", false, true);
     ddr_->registerVariable<bool>("zero_y", &zero_y_, "zero out y", false, true);
     ddr_->registerVariable<bool>("zero_z", &zero_z_, "zero out z", false, true);
