@@ -57,7 +57,7 @@ class OldTfToNewTf
   void update(const ros::TimerEvent& te)
   {
     auto cur_time = te.current_real;
-    auto lookup_time = cur_time + ros::Duration();
+    auto lookup_time = cur_time + ros::Duration(lookup_time_offset_);
     if (lookup_time_most_recent_) {
       lookup_time = ros::Time(0);
     }
@@ -86,6 +86,13 @@ class OldTfToNewTf
     if (ts_in.header.stamp == last_lookup_time_) {
       return;
     }
+    const auto delta = (ts_in.header.stamp - last_lookup_time_).toSec();
+    // TODO(lucasw) this seems to happen with sim time occasionally
+    if (delta < 1e-4) {
+      ROS_WARN_STREAM("very small delta time, skipping: " << (ts_in.header.stamp - last_lookup_time_).toSec() << "s");
+      return;
+    }
+
     last_lookup_time_ = ts_in.header.stamp;
 
     ts_out.transform = ts_in.transform;
