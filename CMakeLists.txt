@@ -71,6 +71,7 @@ install(PROGRAMS
    scripts/flyer.py
    scripts/old_tf_to_new_tf.py
    scripts/tf_path.py
+   scripts/tf_tree.py
    scripts/tracking_arm.py
    DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
