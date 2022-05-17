@@ -57,6 +57,12 @@ add_executable(old_tf_to_new_tf
 
 target_link_libraries(old_tf_to_new_tf ${catkin_LIBRARIES})
 
+add_executable(tf_extrapolation_exception
+  src/tf_extrapolation_exception.cpp
+)
+
+target_link_libraries(tf_extrapolation_exception ${catkin_LIBRARIES})
+
 install(TARGETS
   old_tf_to_new_tf
   ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
