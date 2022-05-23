@@ -104,10 +104,9 @@ while not rospy.is_shutdown():
         # ts['finger'].transform.rotation = target_trans.transform.rotation
         # Need to construct a rotation out of the xyz translation
         rot_mat = numpy.identity(4)
-        vector = [
-                target_trans.transform.translation.x,
-                target_trans.transform.translation.y,
-                target_trans.transform.translation.z]
+        vector = [target_trans.transform.translation.x,
+                  target_trans.transform.translation.y,
+                  target_trans.transform.translation.z]
 
         # vector[2] = 0.0
         forward = vector / numpy.linalg.norm(vector)

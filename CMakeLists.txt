@@ -17,6 +17,7 @@ find_package(catkin REQUIRED COMPONENTS
 set(ROSLINT_CPP_OPTS "--extensions=cpp,h,hpp" "--filter=-whitespace/braces")
 roslint_cpp()
 
+set(ROSLINT_PYTHON_OPTS "--ignore=W503" "1>&2")
 roslint_python()
 ## Uncomment this if the package has a setup.py. This macro ensures
 ## modules and global scripts declared therein get installed
