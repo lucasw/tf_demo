@@ -83,6 +83,10 @@ class OldTfToNewTf
     }
     last_lookup_failed_ = false;
 
+    if (lookup_parent_ == lookup_child_) {
+      ts_in.header.stamp = cur_time;
+    }
+
     if (ts_in.header.stamp == last_lookup_time_) {
       return;
     }
