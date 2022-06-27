@@ -79,21 +79,32 @@ class OldTfToNewTf
       return;
     }
     if (last_lookup_failed_) {
-      ROS_WARN_STREAM_THROTTLE(2.0, "now looking up " << ts_in.header.frame_id << " to " << ts_in.child_frame_id);
+      ROS_WARN_STREAM_THROTTLE(2.0, "now looking up " << ts_in.header.frame_id << " to " << ts_in.child_frame_id
+          << " for " << ts_out.header.frame_id << " to " << ts_out.child_frame_id);
     }
     last_lookup_failed_ = false;
 
-    if (lookup_parent_ == lookup_child_) {
+    // TODO(lucasw) for some reason lookupTransform return the same time repeatedly when the frames match,
+    // causing the duplicate timestamp check below to fail- so set to current time
+    // rosrun tf2_tools echo.py base_link base_link or similar does show current time,
+    // so it may be a roscpp/rospy inconsistency
+    // TODO(lucasw) if this is detected send a static transform
+    if (lookup_child_ == lookup_parent_) {
       ts_in.header.stamp = cur_time;
     }
 
     if (ts_in.header.stamp == last_lookup_time_) {
+      // TODO(lucasw) only want to see this if it is true for some length of time,
+      // this could be happening all the time but as long as some trasnforms are getting out that is okay
+      // ROS_WARN_STREAM_THROTTLE(2.0, ts_in);
+      ROS_DEBUG_STREAM_THROTTLE(2.0, "last lookup same as current transform " << last_lookup_time_.toSec());
       return;
     }
     const auto delta = (ts_in.header.stamp - last_lookup_time_).toSec();
     // TODO(lucasw) this seems to happen with sim time occasionally
     if (delta < 1e-4) {
-      ROS_WARN_STREAM("very small delta time, skipping: " << (ts_in.header.stamp - last_lookup_time_).toSec() << "s");
+      ROS_WARN_STREAM_THROTTLE(2.0, "very small delta time, skipping: "
+                                    << (ts_in.header.stamp - last_lookup_time_).toSec() << "s");
       return;
     }
 
@@ -136,7 +147,7 @@ class OldTfToNewTf
       ts_out.transform.translation.z = 0.0;
     }
 
-    ROS_DEBUG_STREAM_ONCE(ts_out);
+    // ROS_INFO_STREAM_ONCE(ts_out);
 
     br_.sendTransform(ts_out);
   }
