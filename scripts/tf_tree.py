@@ -42,7 +42,7 @@ class TfTree(object):
         print(text)
         if parent in self.parents.keys():
             for child in self.parents[parent]:
-                self.print(child, indent + 1)
+                self.print(child, indent + 1, max_indent=max_indent)
 
     def tf_callback(self, msg):
         # TODO(lucasw) look in roswtf and the tf view_frame tree generator for a more robust
