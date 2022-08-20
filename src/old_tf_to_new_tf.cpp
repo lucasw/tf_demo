@@ -42,7 +42,7 @@ class OldTfToNewTf
   bool lookup_time_most_recent_ = true;
   std::string lookup_parent_ = "map";
   std::string lookup_child_ = "child";
-  double broadcast_time_offset_;
+  double broadcast_time_offset_ = 0.0;
   std::string broadcast_parent_ = "map";
   std::string broadcast_child_ = "child2";
 
