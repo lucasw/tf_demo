@@ -5,6 +5,7 @@
 
 import sys
 
+import numpy as np
 import rospy
 # import tf2_ros
 # import tf2_py as tf2
@@ -27,6 +28,7 @@ class TfTree(object):
         self.parents = {}
         self.children = {}
         self.publishers = {}
+        self.ages = {}
         self.tf_sub = rospy.Subscriber("/tf", TFMessage, self.tf_callback, queue_size=100)
         self.tf_static_sub = rospy.Subscriber("/tf_static", TFMessage, self.tf_callback, queue_size=100)
         rospy.sleep(rospy.Duration(wait))
@@ -96,6 +98,8 @@ class TfTree(object):
         text += parent
         if parent in self.publishers.keys():
             text += f" {list(self.publishers[parent].keys())}"
+        if parent in self.ages.keys():
+            text += f" average age: {np.mean(self.ages[parent]):0.4f}s"
         print(text)
         if parent in self.parents.keys():
             for child in self.parents[parent]:
@@ -104,6 +108,7 @@ class TfTree(object):
     def tf_callback(self, msg):
         # TODO(lucasw) look in roswtf and the tf view_frame tree generator for a more robust
         # approach, note update rates and multiple parents for one frame issues
+        cur = rospy.Time.now()
         for tfs in msg.transforms:
             parent = tfs.header.frame_id
             child = tfs.child_frame_id
@@ -122,6 +127,10 @@ class TfTree(object):
             if child not in self.publishers.keys():
                 self.publishers[child] = {}
             self.publishers[child][publisher] = True
+
+            if child not in self.ages.keys():
+                self.ages[child] = []
+            self.ages[child].append((cur - tfs.header.stamp).to_sec())
 
 
 if __name__ == '__main__':
