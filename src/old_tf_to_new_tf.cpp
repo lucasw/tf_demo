@@ -34,7 +34,8 @@ class OldTfToNewTf
   ros::Time last_lookup_time_ = ros::Time(0);
   bool last_lookup_failed_ = true;
 
-  ros::Timer timer_;
+  // double publish_rate_ = 20.0;
+  // ros::Timer timer_;
 
   std::unique_ptr<ddynamic_reconfigure::DDynamicReconfigure> ddr_;
 
@@ -54,9 +55,10 @@ class OldTfToNewTf
   bool zero_y_ = false;
   bool zero_z_ = false;
 
-  void update(const ros::TimerEvent& te)
+  bool update()  // const ros::TimerEvent& te)
   {
-    auto cur_time = te.current_real;
+    // auto cur_time = te.current_real;
+    const auto cur_time = ros::Time::now();
     auto lookup_time = cur_time + ros::Duration(lookup_time_offset_);
     if (lookup_time_most_recent_) {
       lookup_time = ros::Time(0);
@@ -76,8 +78,10 @@ class OldTfToNewTf
         ROS_WARN_STREAM_THROTTLE(2.0, ex.what());
         last_lookup_failed_ = true;
       }
-      return;
+      return false;
     }
+    const auto lookup_elapsed = (ros::Time::now() - cur_time).toSec();
+
     if (last_lookup_failed_) {
       ROS_WARN_STREAM_THROTTLE(2.0, "now looking up " << ts_in.header.frame_id << " to " << ts_in.child_frame_id
           << " for " << ts_out.header.frame_id << " to " << ts_out.child_frame_id);
@@ -93,19 +97,23 @@ class OldTfToNewTf
       ts_in.header.stamp = cur_time;
     }
 
+    // don't publish same transform with same stamp
     if (ts_in.header.stamp == last_lookup_time_) {
-      // TODO(lucasw) only want to see this if it is true for some length of time,
-      // this could be happening all the time but as long as some trasnforms are getting out that is okay
-      // ROS_WARN_STREAM_THROTTLE(2.0, ts_in);
-      ROS_DEBUG_STREAM_THROTTLE(2.0, "last lookup same as current transform " << last_lookup_time_.toSec());
-      return;
+      return false;
     }
+
+    // TODO(lucasw) make a debug pub that does this for every lookup
+    // TODO(lucasw) need to see if static
+    const auto delay = (ros::Time::now() - ts_in.header.stamp).toSec();
+    ROS_DEBUG_STREAM_THROTTLE(2.0, "delay " << delay << "s, " << lookup_time.toSec()
+        << "s, lookup " << lookup_elapsed << "s");
+
     const auto delta = (ts_in.header.stamp - last_lookup_time_).toSec();
     // TODO(lucasw) this seems to happen with sim time occasionally
     if (delta < 1e-4) {
       ROS_WARN_STREAM_THROTTLE(2.0, "very small delta time, skipping: "
                                     << (ts_in.header.stamp - last_lookup_time_).toSec() << "s");
-      return;
+      return false;
     }
 
     last_lookup_time_ = ts_in.header.stamp;
@@ -149,7 +157,9 @@ class OldTfToNewTf
 
     // ROS_INFO_STREAM_ONCE(ts_out);
 
+    // TODO(lucasw) would publishing to /tf directly have less delay?
     br_.sendTransform(ts_out);
+    return true;
   }
 
 public:
@@ -157,9 +167,6 @@ public:
     tf_buffer_(ros::Duration(cache_time)),
     tf_listener_(tf_buffer_)
   {
-    double update_rate = 20.0;
-    ros::param::get("~update_rate", update_rate);
-
     ddr_ = std::make_unique<ddynamic_reconfigure::DDynamicReconfigure>();
     ddr_->registerVariable<double>("lookup_time_offset", &lookup_time_offset_,
                                    "offset the lookup time", -10.0, 10.0);
@@ -184,7 +191,16 @@ public:
     // collect some transforms
     ros::Duration(1.0).sleep();
 
-    timer_ = nh_.createTimer(ros::Duration(1.0 / update_rate), &OldTfToNewTf::update, this);
+    while (ros::ok()) {
+      // This polls for a newer transform than the last update
+      if (update()) {
+        // having just updated don't need to update again immediately
+        ros::Duration(0.02).sleep();
+      } else {
+        // sleep but for a smaller duration and maybe new transforms will arrive
+        ros::Duration(0.002).sleep();
+      }
+    }
   }
 };
 
