@@ -29,8 +29,10 @@ class TfTree(object):
         self.children = {}
         self.publishers = {}
         self.ages = {}
-        self.tf_sub = rospy.Subscriber("/tf", TFMessage, self.tf_callback, queue_size=100)
-        self.tf_static_sub = rospy.Subscriber("/tf_static", TFMessage, self.tf_callback, queue_size=100)
+        self.tf_sub = rospy.Subscriber("/tf", TFMessage, self.tf_callback,
+                                       queue_size=100, callback_args=(False))
+        self.tf_static_sub = rospy.Subscriber("/tf_static", TFMessage, self.tf_callback,
+                                              queue_size=100, callback_args=(True))
         rospy.sleep(rospy.Duration(wait))
         self.tf_sub.unregister()
 
@@ -98,14 +100,17 @@ class TfTree(object):
         text += parent
         if parent in self.publishers.keys():
             text += f" {list(self.publishers[parent].keys())}"
-        if parent in self.ages.keys():
+        if parent in self.ages.keys() and len(self.ages) > 0:
             text += f" average age: {np.mean(self.ages[parent]):0.4f}s"
+        else:
+            text += " static"
         print(text)
         if parent in self.parents.keys():
             for child in self.parents[parent]:
                 self.print(child, indent + 1, max_indent=max_indent, parent_mask=parent_mask)
 
-    def tf_callback(self, msg):
+    def tf_callback(self, msg, callback_args):
+        is_static = callback_args
         # TODO(lucasw) look in roswtf and the tf view_frame tree generator for a more robust
         # approach, note update rates and multiple parents for one frame issues
         cur = rospy.Time.now()
@@ -128,9 +133,10 @@ class TfTree(object):
                 self.publishers[child] = {}
             self.publishers[child][publisher] = True
 
-            if child not in self.ages.keys():
-                self.ages[child] = []
-            self.ages[child].append((cur - tfs.header.stamp).to_sec())
+            if not is_static:
+                if child not in self.ages.keys():
+                    self.ages[child] = []
+                self.ages[child].append((cur - tfs.header.stamp).to_sec())
 
 
 if __name__ == '__main__':
