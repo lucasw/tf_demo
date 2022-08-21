@@ -3,6 +3,8 @@
 #
 # print the current tf tree to logs
 
+import sys
+
 import rospy
 # import tf2_ros
 # import tf2_py as tf2
@@ -11,6 +13,15 @@ from tf2_msgs.msg import TFMessage
 
 class TfTree(object):
     def __init__(self):
+        frames_pre = []
+        for arg in sys.argv[1:]:
+            if arg[0] == '_':
+                continue
+            frames_pre.append(arg)
+        frames_pre = list(set(frames_pre))
+        print(frames_pre)
+
+        # how long to listen to tf topics
         wait = rospy.get_param("~wait", 1.0)
         max_indent = rospy.get_param("~max_indent", 18)
         self.parents = {}
@@ -21,16 +32,50 @@ class TfTree(object):
         rospy.sleep(rospy.Duration(wait))
         self.tf_sub.unregister()
 
+        frames = []
+        for frame in frames_pre:
+            if frame in self.children.keys():
+                frames.append(frame)
+            # rospy.logwarn(f"'{frame}' not in tf {self.children.keys()}")
+
         roots = {}
-        for parent, children in self.parents.items():
-            if parent not in self.children.keys():
-                roots[parent] = children
+        if len(frames) != 1:
+            for parent, children in self.parents.items():
+                if len(children) > 0 and parent not in self.children.keys():
+                    roots[parent] = children
+        else:
+            # only print the tree below the one frame
+            roots[frames[0]] = self.parents[frames[0]]
 
-        rospy.loginfo(roots.keys())
+        # show only the tf tree connecting all the provided frames
+        # TODO(lucasw) this also shows the common parents of all frames
+        # all the way to the root, but could eliminate those
+        lineages = {}
+        parent_mask = []
+        if len(frames) > 1:
+            for frame in frames:
+                lineages[frame] = self.get_lineage(frame)
+                parent_mask.extend(lineages[frame])
+        parent_mask = list(set(parent_mask))
+        rospy.loginfo(f"parent mask {parent_mask}")
+
+        rospy.loginfo(list(roots.keys()))
         for root in roots.keys():
-            self.print(root, max_indent=max_indent)
+            self.print(root, max_indent=max_indent, parent_mask=parent_mask)
 
-    def print(self, parent, indent=0, max_indent=12):
+    # get every parent of frame in a list
+    def get_lineage(self, frame, lineage=None):
+        if lineage is None:
+            lineage = [frame]
+        if frame in self.children.keys():
+            parent = self.children[frame]
+            lineage.append(parent)
+            return self.get_lineage(parent, lineage)
+        return lineage
+
+    def print(self, parent, indent=0, max_indent=12, parent_mask=[]):
+        if len(parent_mask) > 0 and parent not in parent_mask:
+            return
         if indent > max_indent:
             print('...')
             return
@@ -45,7 +90,7 @@ class TfTree(object):
         print(text)
         if parent in self.parents.keys():
             for child in self.parents[parent]:
-                self.print(child, indent + 1, max_indent=max_indent)
+                self.print(child, indent + 1, max_indent=max_indent, parent_mask=parent_mask)
 
     def tf_callback(self, msg):
         # TODO(lucasw) look in roswtf and the tf view_frame tree generator for a more robust
@@ -56,6 +101,9 @@ class TfTree(object):
 
             if parent not in self.parents.keys():
                 self.parents[parent] = []
+            if child not in self.parents.keys():
+                self.parents[child] = []
+
             if child not in self.parents[parent]:
                 self.parents[parent].append(child)
 
