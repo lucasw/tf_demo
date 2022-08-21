@@ -36,11 +36,7 @@ class TfTree(object):
         rospy.sleep(rospy.Duration(wait))
         self.tf_sub.unregister()
 
-        frames = []
-        for frame in frames_pre:
-            if frame in self.children.keys():
-                frames.append(frame)
-            # rospy.logwarn(f"'{frame}' not in tf {self.children.keys()}")
+        frames = frames_pre
 
         roots = {}
         if len(frames) != 1:
