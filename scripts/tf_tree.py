@@ -15,6 +15,7 @@ class TfTree(object):
         max_indent = rospy.get_param("~max_indent", 18)
         self.parents = {}
         self.children = {}
+        self.publishers = {}
         self.tf_sub = rospy.Subscriber("/tf", TFMessage, self.tf_callback, queue_size=100)
         self.tf_static_sub = rospy.Subscriber("/tf_static", TFMessage, self.tf_callback, queue_size=100)
         rospy.sleep(rospy.Duration(wait))
@@ -39,6 +40,8 @@ class TfTree(object):
         if indent > 0:
             text += '--'
         text += parent
+        if parent in self.publishers.keys():
+            text += f" {list(self.publishers[parent].keys())}"
         print(text)
         if parent in self.parents.keys():
             for child in self.parents[parent]:
@@ -56,11 +59,12 @@ class TfTree(object):
             if child not in self.parents[parent]:
                 self.parents[parent].append(child)
 
-            # if child not in self.children.keys():
-            #     self.children[child] = []
-            # self.children[child].append(parent)
-
             self.children[child] = parent
+            rospy.logdebug_once(msg._connection_header)
+            publisher = msg._connection_header['callerid']
+            if child not in self.publishers.keys():
+                self.publishers[child] = {}
+            self.publishers[child][publisher] = True
 
 
 if __name__ == '__main__':
