@@ -51,12 +51,21 @@ class TfTree(object):
         # TODO(lucasw) this also shows the common parents of all frames
         # all the way to the root, but could eliminate those
         lineages = {}
+        common_lineage = None
         parent_mask = []
         if len(frames) > 1:
             for frame in frames:
                 lineages[frame] = self.get_lineage(frame)
+                if common_lineage is None:
+                    common_lineage = lineages[frame]
+                else:
+                    common_lineage = [x for x in common_lineage if x in lineages[frame]]
                 parent_mask.extend(lineages[frame])
-        parent_mask = list(set(parent_mask))
+            print(f"common lineage: {common_lineage}")
+            if len(common_lineage) > 0:
+                roots = {}
+                roots[common_lineage[0]] = self.parents[common_lineage[0]]
+            parent_mask = list(set(parent_mask))
         rospy.loginfo(f"parent mask {parent_mask}")
 
         rospy.loginfo(list(roots.keys()))
