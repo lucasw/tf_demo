@@ -111,8 +111,8 @@ class OldTfToNewTf
     const auto delta = (ts_in.header.stamp - last_lookup_time_).toSec();
     // TODO(lucasw) this seems to happen with sim time occasionally
     if (delta < 1e-4) {
-      ROS_WARN_STREAM_THROTTLE(2.0, "very small delta time, skipping: "
-                                    << (ts_in.header.stamp - last_lookup_time_).toSec() << "s");
+      ROS_DEBUG_STREAM_THROTTLE(4.0, "very small delta time, skipping: "
+                                     << (ts_in.header.stamp - last_lookup_time_).toSec() << "s");
       return false;
     }
 
