@@ -14,7 +14,7 @@ find_package(catkin REQUIRED COMPONENTS
   visualization_msgs
 )
 
-set(ROSLINT_CPP_OPTS "--extensions=cpp,h,hpp" "--filter=-whitespace/braces")
+set(ROSLINT_CPP_OPTS "--extensions=cpp,h,hpp" "--filter=-whitespace/braces,-runtime/references")
 roslint_cpp()
 
 set(ROSLINT_PYTHON_OPTS "--ignore=W503" "1>&2")
@@ -34,7 +34,7 @@ roslint_python()
 ## CATKIN_DEPENDS: catkin_packages dependent projects also need
 ## DEPENDS: system dependencies of this project that dependent projects also need
 catkin_package(
-#  INCLUDE_DIRS include
+  INCLUDE_DIRS include
 #  LIBRARIES rqt_dr_single
   CATKIN_DEPENDS
   ddynamic_reconfigure
@@ -49,6 +49,7 @@ catkin_package(
 ###########
 
 include_directories(
+  include
   ${catkin_INCLUDE_DIRS}
 )
 
@@ -63,6 +64,10 @@ add_executable(tf_extrapolation_exception
 )
 
 target_link_libraries(tf_extrapolation_exception ${catkin_LIBRARIES})
+
+install(DIRECTORY include/${PROJECT_NAME}/
+  DESTINATION ${CATKIN_PACKAGE_INCLUDE_DESTINATION}
+)
 
 install(TARGETS
   old_tf_to_new_tf
