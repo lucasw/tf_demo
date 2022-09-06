@@ -31,6 +31,8 @@ struct CopyTransform
   std::string broadcast_parent_ = "map";
   std::string broadcast_child_;
 
+  bool skip_small_time_delta_ = true;
+
   // TODO(lucasw) make these 0.0-1.0 where 0.0 is all the source (true) and 1.0 is all the target (false)
   // the intermediate values are linear blends
   bool zero_rotation_ = false;
@@ -87,23 +89,25 @@ struct CopyTransform
       ts_in.header.stamp = cur_time;
     }
 
-    // don't publish same transform with same stamp
-    if (ts_in.header.stamp == last_lookup_time_) {
-      return false;
-    }
+    if (skip_small_time_delta_) {
+      // don't publish same transform with same stamp
+      if (ts_in.header.stamp == last_lookup_time_) {
+        return false;
+      }
 
-    // TODO(lucasw) make a debug pub that does this for every lookup
-    // TODO(lucasw) need to see if static
-    const auto delay = (ros::Time::now() - ts_in.header.stamp).toSec();
-    ROS_DEBUG_STREAM_THROTTLE(2.0, "delay " << delay << "s, " << lookup_time.toSec()
-        << "s, lookup " << lookup_elapsed << "s");
+      // TODO(lucasw) make a debug pub that does this for every lookup
+      // TODO(lucasw) need to see if static
+      const auto delay = (ros::Time::now() - ts_in.header.stamp).toSec();
+      ROS_DEBUG_STREAM_THROTTLE(2.0, "delay " << delay << "s, " << lookup_time.toSec()
+          << "s, lookup " << lookup_elapsed << "s");
 
-    const auto delta = (ts_in.header.stamp - last_lookup_time_).toSec();
-    // TODO(lucasw) this seems to happen with sim time occasionally
-    if (delta < 1e-4) {
-      ROS_DEBUG_STREAM_THROTTLE(4.0, "very small delta time, skipping: "
-                                     << (ts_in.header.stamp - last_lookup_time_).toSec() << "s");
-      return false;
+      const auto delta = (ts_in.header.stamp - last_lookup_time_).toSec();
+      // TODO(lucasw) this seems to happen with sim time occasionally
+      if (delta < 1e-4) {
+        ROS_DEBUG_STREAM_THROTTLE(4.0, "very small delta time, skipping: "
+                                       << (ts_in.header.stamp - last_lookup_time_).toSec() << "s");
+        return false;
+      }
     }
 
     last_lookup_time_ = ts_in.header.stamp;
