@@ -42,7 +42,7 @@ struct CopyTransform
   bool zero_z_ = false;
 
   ros::Time last_lookup_time_;
-  bool last_lookup_failed_;
+  bool last_lookup_failed_ = false;
 
   CopyTransform()
   {
