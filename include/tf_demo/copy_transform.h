@@ -53,7 +53,8 @@ struct CopyTransform
   bool copyTransform(const tf2::BufferCore& buffer,
       const ros::Time& cur_time,
       const ros::Time& lookup_time,
-      geometry_msgs::TransformStamped& ts_out)
+      geometry_msgs::TransformStamped& ts_out,
+      const bool verbose=false)
   {
     // TODO(lucasw) move to cpp file, make a library in this package
     ts_out = geometry_msgs::TransformStamped();
@@ -65,16 +66,20 @@ struct CopyTransform
     try {
       ts_in = buffer.lookupTransform(lookup_parent_, lookup_child_, lookup_time);
     } catch (tf2::TransformException& ex) {
-      if (!last_lookup_failed_) {
+      if ((!last_lookup_failed_) || (verbose)) {
         ROS_WARN_STREAM_THROTTLE(2.0, "lookup time: " << lookup_time.toSec());
         ROS_WARN_STREAM_THROTTLE(2.0, ex.what());
         last_lookup_failed_ = true;
       }
       return false;
     }
+    if (ts_in.header.stamp == ros::Time(0)) {
+      ROS_WARN_ONCE("setting timestamp to current time (probably a static lookup)");
+      ts_in.header.stamp = cur_time;
+    }
     const auto lookup_elapsed = (ros::Time::now() - cur_time).toSec();
 
-    if (last_lookup_failed_) {
+    if ((last_lookup_failed_) || (verbose)) {
       ROS_WARN_STREAM_THROTTLE(2.0, "now looking up " << ts_in.header.frame_id << " to " << ts_in.child_frame_id
           << " for " << ts_out.header.frame_id << " to " << ts_out.child_frame_id);
     }
@@ -92,6 +97,9 @@ struct CopyTransform
     if (skip_small_time_delta_) {
       // don't publish same transform with same stamp
       if (ts_in.header.stamp == last_lookup_time_) {
+        ROS_DEBUG_STREAM_THROTTLE(4.0, "same lookup as last time "
+                                       << (ts_in.header.stamp - last_lookup_time_).toSec() << "s "
+                                       << (ts_in.header.stamp).toSec());
         return false;
       }
 

@@ -56,7 +56,11 @@ class OldTfToNewTf
     }
 
     geometry_msgs::TransformStamped ts_out;
-    if (!copy_transform_.copyTransform(tf_buffer_, cur_time, lookup_time, ts_out)) {
+    const bool verbose = false;
+    if (!copy_transform_.copyTransform(tf_buffer_, cur_time, lookup_time, ts_out, verbose)) {
+      if (verbose) {
+        ROS_WARN_STREAM_THROTTLE(8.0, "couldn't copy transform");
+      }
       return false;
     }
 
