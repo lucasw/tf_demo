@@ -90,9 +90,9 @@ class TfTree(object):
             return
         text = ''
         for i in range(indent - 1):
-            text += '  '
+            text += "   "
         if indent > 0:
-            text += '--'
+            text += "-- "
         text += parent
         if parent in self.publishers.keys():
             text += f" {list(self.publishers[parent].keys())}"
