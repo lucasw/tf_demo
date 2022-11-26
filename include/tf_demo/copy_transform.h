@@ -54,7 +54,7 @@ struct CopyTransform
       const ros::Time& cur_time,
       const ros::Time& lookup_time,
       geometry_msgs::TransformStamped& ts_out,
-      const bool verbose=false)
+      const bool verbose = false)
   {
     // TODO(lucasw) move to cpp file, make a library in this package
     ts_out = geometry_msgs::TransformStamped();
