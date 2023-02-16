@@ -65,6 +65,11 @@ add_executable(tf_extrapolation_exception
 
 target_link_libraries(tf_extrapolation_exception ${catkin_LIBRARIES})
 
+add_executable(echo
+  src/echo.cpp
+)
+target_link_libraries(echo ${catkin_LIBRARIES})
+
 install(DIRECTORY include/${PROJECT_NAME}/
   DESTINATION ${CATKIN_PACKAGE_INCLUDE_DESTINATION}
 )
