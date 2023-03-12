@@ -31,9 +31,12 @@ class OldTfToNewTf(object):
         self.config = None
         self.ddr = DDynamicReconfigure("")
         self.ddr.add_variable("lookup_time_offset", "offset the lookup time", 0.0, -10.0, 10.0)
+        self.ddr.add_variable("lookup_time_offset_parent",
+                              "offset the parent lookup time, need a reference frame", 0.0, -10.0, 10.0)
         self.ddr.add_variable("lookup_time_most_recent", "use the most recent tf", True)
         self.ddr.add_variable("lookup_parent", "lookup parent", "map")
         self.ddr.add_variable("lookup_child", "lookup child", "child")
+        self.ddr.add_variable("reference_frame", "reference frame if lookup_time_offset_parent != 0.0", "map")
         self.ddr.add_variable("broadcast_time_offset", "offset the broadcast time", 0.0, -10.0, 10.0)
         self.ddr.add_variable("broadcast_parent", "broadcast parent", "map")
         self.ddr.add_variable("broadcast_child", "broadcast child", "child2")
@@ -47,7 +50,7 @@ class OldTfToNewTf(object):
         # collect some transforms:
         rospy.sleep(1.0)
 
-        self.timer = rospy.Timer(rospy.Duration(1.0 / update_rate), self.update)
+        self.timer = rospy.Timer(rospy.Duration(1.0 / update_rate), self.update, reset=True)
 
     def config_callback(self, config, level):
         self.config = config
@@ -69,14 +72,36 @@ class OldTfToNewTf(object):
         else:
             lookup_time = cur_time + rospy.Duration(config.lookup_time_offset)
 
+        if config.lookup_time_offset_parent != 0.0:
+            if lookup_time == rospy.Time(0):
+                rospy.logerr("need to use lookup_time_most_recent:=false")
+            # TODO(lucasw) if lookup_time is rospy.Time(0) then need to get the most recent
+            # available time, then add the duration
+            lookup_time_parent = lookup_time + rospy.Duration(config.lookup_time_offset_parent)
+        else:
+            lookup_time_parent = lookup_time
+
         try:
-            trans = self.tf_buffer.lookup_transform(config.lookup_parent, config.lookup_child, lookup_time)
+            text = f"'{config.lookup_parent}' {lookup_time_parent.to_sec():0.2f}s"
+            text += f" to '{config.lookup_child}' {lookup_time.to_sec():0.2f}s"
+            text += f", reference '{config.reference_frame}'"
+            rospy.loginfo_once(text)
+            if config.lookup_time_offset_parent != 0.0:
+                trans = self.tf_buffer.lookup_transform_full(config.lookup_parent, lookup_time_parent,
+                                                             config.lookup_child, lookup_time,
+                                                             config.reference_frame,
+                                                             rospy.Duration(0.15))
+            else:
+                trans = self.tf_buffer.lookup_transform(config.lookup_parent, config.lookup_child, lookup_time)
         except (tf2.ConnectivityException, tf2.LookupException, tf2.ExtrapolationException) as ex:
             if self.last_lookup_failed is not True:
                 rospy.logwarn_throttle(2.0, f"lookup time: {lookup_time.to_sec():0.2f}")
                 rospy.logwarn_throttle(2.0, ex)
                 # rospy.logwarn(traceback.format_exc())
                 self.last_lookup_failed = True
+            return
+        except rospy.exceptions.ROSTimeMovedBackwardsException as ex:
+            rospy.logwarn(ex)
             return
         if self.last_lookup_failed is not False:
             rospy.logwarn_throttle(2.0, f"now looking up {trans.header.frame_id} to {trans.child_frame_id}")
