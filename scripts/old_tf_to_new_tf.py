@@ -13,6 +13,7 @@ import tf2_py as tf2
 # import traceback
 from ddynamic_reconfigure_python.ddynamic_reconfigure import DDynamicReconfigure
 from geometry_msgs.msg import TransformStamped
+from tf2_msgs.msg import TFMessage
 
 
 class OldTfToNewTf(object):
@@ -21,7 +22,10 @@ class OldTfToNewTf(object):
         self.tf_buffer = tf2_ros.Buffer(cache_time=rospy.Duration(cache_time))
         self.tl = tf2_ros.TransformListener(self.tf_buffer)
 
-        self.br = tf2_ros.TransformBroadcaster()
+        # self.br = tf2_ros.TransformBroadcaster()
+        # can't use remapping because that will remap the transform listener above
+        tf_pub_topic = rospy.get_param("~tf_pub_topic", "/tf")
+        self.tf_pub = rospy.Publisher(tf_pub_topic, TFMessage, queue_size=10)
 
         update_rate = rospy.get_param("~update_rate", 20.0)
 
@@ -45,6 +49,11 @@ class OldTfToNewTf(object):
         self.ddr.add_variable("zero_x", "zero out x", False)
         self.ddr.add_variable("zero_y", "zero out y", False)
         self.ddr.add_variable("zero_z", "zero out z", False)
+
+        self.ddr.add_variable("offset_x", "offset output x", 0.0, -10.0, 10.0)
+        self.ddr.add_variable("offset_y", "offset output y", 0.0, -10.0, 10.0)
+        self.ddr.add_variable("offset_z", "offset output z", 0.0, -10.0, 10.0)
+
         self.ddr.start(self.config_callback)
 
         # collect some transforms:
@@ -128,9 +137,17 @@ class OldTfToNewTf(object):
         if config.zero_z:
             ts.transform.translation.z = 0.0
 
+        ts.transform.translation.x += config.offset_x
+        ts.transform.translation.y += config.offset_y
+        ts.transform.translation.z += config.offset_z
+
         rospy.logdebug_once(ts)
 
-        self.br.sendTransform(ts)
+        tfm = TFMessage()
+        tfm.transforms.append(ts)
+        self.tf_pub.publish(tfm)
+
+        # self.br.sendTransform(ts)
 
 
 if __name__ == '__main__':

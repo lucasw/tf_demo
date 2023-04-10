@@ -5,7 +5,7 @@ from geometry_msgs.msg import TransformStamped
 
 buffer_core = tf2_ros.BufferCore(rospy.Duration(10.0))
 ts1 = TransformStamped()
-ts1.header.stamp = rospy.Time(0)
+ts1.header.stamp = rospy.Time(413)
 ts1.header.frame_id = 'map'
 ts1.child_frame_id = 'frame1'
 ts1.transform.translation.x = 2.71828183
@@ -21,6 +21,8 @@ print(a)
 b = buffer_core.lookup_transform_core('frame1', 'map', rospy.Time(0))
 print(b)
 # ((-2.71828183, 0.0, 0.0), (0.0, 0.0, 0.0, 1.0))
+
+print("=================")
 
 ts2 = TransformStamped()
 ts2.header.stamp = rospy.Time(0)
