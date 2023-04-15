@@ -38,6 +38,7 @@ class OldTfToNewTf(object):
         self.ddr.add_variable("lookup_time_offset_parent",
                               "offset the parent lookup time, need a reference frame", 0.0, -10.0, 10.0)
         self.ddr.add_variable("lookup_time_most_recent", "use the most recent tf", True)
+        self.ddr.add_variable("publish_if_lookup_fails", "publish zero tf if lookup fails", False)
         self.ddr.add_variable("lookup_parent", "lookup parent", "map")
         self.ddr.add_variable("lookup_child", "lookup child", "child")
         self.ddr.add_variable("reference_frame", "reference frame if lookup_time_offset_parent != 0.0", "map")
@@ -108,6 +109,18 @@ class OldTfToNewTf(object):
                 rospy.logwarn_throttle(2.0, ex)
                 # rospy.logwarn(traceback.format_exc())
                 self.last_lookup_failed = True
+
+            if config.publish_if_lookup_fails:
+                ts = TransformStamped()
+                ts.header.stamp = cur_time + rospy.Duration(config.broadcast_time_offset)
+                ts.header.frame_id = config.broadcast_parent
+                ts.child_frame_id = config.broadcast_child
+                ts.transform.rotation.w = 1.0
+                # TODO(lucasw) could add offset_xyz- but refactor to make a sub-method
+                # that returns a transform, then do the offset on return value if any
+                tfm = TFMessage()
+                tfm.transforms.append(ts)
+                self.tf_pub.publish(tfm)
             return
         except rospy.exceptions.ROSTimeMovedBackwardsException as ex:
             rospy.logwarn(ex)
