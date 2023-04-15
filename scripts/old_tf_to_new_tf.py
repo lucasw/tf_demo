@@ -71,12 +71,60 @@ class OldTfToNewTf(object):
         if config is None:
             return
 
+        cur_time = event.current_real
+        ts = self.get_transform(config, cur_time)
+
+        if ts is None:
+            if not config.publish_if_lookup_fails:
+                return
+            text = "this will publish a possibly reasonable looking transform when tf is failing for good reasons"
+            rospy.logwarn_once(text)
+            ts = self.get_default_transform(config)
+            ts.header.stamp = cur_time
+
+        if ts.header.stamp == self.last_lookup_time:
+            if not config.publish_if_lookup_fails:
+                return None
+            # TODO(lucasw) may should use the last transform instead
+            ts = self.get_default_transform(config)
+            ts.header.stamp = cur_time
+        self.last_lookup_time = ts.header.stamp
+
+        ts.header.stamp += rospy.Duration(config.broadcast_time_offset)
+
+        if config.zero_rotation:
+            ts.transform.rotation.x = 0.0
+            ts.transform.rotation.y = 0.0
+            ts.transform.rotation.z = 0.0
+            ts.transform.rotation.w = 1.0
+        if config.zero_x:
+            ts.transform.translation.x = 0.0
+        if config.zero_y:
+            ts.transform.translation.y = 0.0
+        if config.zero_z:
+            ts.transform.translation.z = 0.0
+
+        ts.transform.translation.x += config.offset_x
+        ts.transform.translation.y += config.offset_y
+        ts.transform.translation.z += config.offset_z
+
+        rospy.logdebug_once(ts)
+
+        tfm = TFMessage()
+        tfm.transforms.append(ts)
+        self.tf_pub.publish(tfm)
+
+        # self.br.sendTransform(ts)
+
+    def get_default_transform(self, config) -> TransformStamped:
         ts = TransformStamped()
         ts.transform.rotation.w = 1.0
         ts.header.frame_id = config.broadcast_parent
         ts.child_frame_id = config.broadcast_child
+        return ts
 
-        cur_time = event.current_real
+    def get_transform(self, config, cur_time) -> TransformStamped:
+        ts = self.get_default_transform(config)
         if config.lookup_time_most_recent:
             lookup_time = rospy.Time(0)
         else:
@@ -109,58 +157,20 @@ class OldTfToNewTf(object):
                 rospy.logwarn_throttle(2.0, ex)
                 # rospy.logwarn(traceback.format_exc())
                 self.last_lookup_failed = True
-
-            if config.publish_if_lookup_fails:
-                ts = TransformStamped()
-                ts.header.stamp = cur_time + rospy.Duration(config.broadcast_time_offset)
-                ts.header.frame_id = config.broadcast_parent
-                ts.child_frame_id = config.broadcast_child
-                ts.transform.rotation.w = 1.0
-                # TODO(lucasw) could add offset_xyz- but refactor to make a sub-method
-                # that returns a transform, then do the offset on return value if any
-                tfm = TFMessage()
-                tfm.transforms.append(ts)
-                self.tf_pub.publish(tfm)
-            return
+            return None
         except rospy.exceptions.ROSTimeMovedBackwardsException as ex:
             rospy.logwarn(ex)
-            return
+            return None
         if self.last_lookup_failed is not False:
             rospy.logwarn_throttle(2.0, f"now looking up {trans.header.frame_id} to {trans.child_frame_id}")
         self.last_lookup_failed = False
 
-        if trans.header.stamp == self.last_lookup_time:
-            return
-        self.last_lookup_time = trans.header.stamp
-
         # rospy.loginfo_throttle(5.0, trans.transform.translation.x)
 
         ts.transform = trans.transform
-        ts.header.stamp = trans.header.stamp + rospy.Duration(config.broadcast_time_offset)
+        ts.header.stamp = trans.header.stamp
 
-        if config.zero_rotation:
-            ts.transform.rotation.x = 0.0
-            ts.transform.rotation.y = 0.0
-            ts.transform.rotation.z = 0.0
-            ts.transform.rotation.w = 1.0
-        if config.zero_x:
-            ts.transform.translation.x = 0.0
-        if config.zero_y:
-            ts.transform.translation.y = 0.0
-        if config.zero_z:
-            ts.transform.translation.z = 0.0
-
-        ts.transform.translation.x += config.offset_x
-        ts.transform.translation.y += config.offset_y
-        ts.transform.translation.z += config.offset_z
-
-        rospy.logdebug_once(ts)
-
-        tfm = TFMessage()
-        tfm.transforms.append(ts)
-        self.tf_pub.publish(tfm)
-
-        # self.br.sendTransform(ts)
+        return ts
 
 
 if __name__ == '__main__':
