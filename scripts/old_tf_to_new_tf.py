@@ -168,6 +168,9 @@ class OldTfToNewTf(object):
         # rospy.loginfo_throttle(5.0, trans.transform.translation.x)
 
         ts.transform = trans.transform
+        # this can't be a static transform if it is being updated all the time
+        if trans.header.stamp == rospy.Time(0):
+            trans.header.stamp = cur_time  # TODO(lucasw) optionally add an offset?
         ts.header.stamp = trans.header.stamp
 
         return ts
