@@ -83,6 +83,7 @@ class OldTfToNewTf(object):
             ts.header.stamp = cur_time
 
         if ts.header.stamp == self.last_lookup_time:
+            rospy.logwarn_once(f"{ts.header.stamp.to_sec():0.3f}s {cur_time.to_sec():0.3f}s")
             if not config.publish_if_lookup_fails:
                 return None
             # TODO(lucasw) may should use the last transform instead
@@ -139,6 +140,15 @@ class OldTfToNewTf(object):
         else:
             lookup_time_parent = lookup_time
 
+        if config.lookup_parent == config.lookup_child and lookup_time_parent == lookup_time:
+            rospy.loginfo_once("detected same parent and child at same stamp, returning identity")
+            # TODO(lucasw) the lookup returns the same timestamp as the last lookup
+            # only returns rospy.Time(0) the first pass, when doing this lookup
+            # with same parent and child- so avoid that and return an identity transform
+            ts = self.get_default_transform(config)
+            ts.header.stamp = cur_time
+            return ts
+
         try:
             text = f"'{config.lookup_parent}' {lookup_time_parent.to_sec():0.2f}s"
             text += f" to '{config.lookup_child}' {lookup_time.to_sec():0.2f}s"
@@ -170,6 +180,7 @@ class OldTfToNewTf(object):
         ts.transform = trans.transform
         # this can't be a static transform if it is being updated all the time
         if trans.header.stamp == rospy.Time(0):
+            rospy.logwarn_once("setting timestamp to current time (probably a static lookup)")
             trans.header.stamp = cur_time  # TODO(lucasw) optionally add an offset?
         ts.header.stamp = trans.header.stamp
 
