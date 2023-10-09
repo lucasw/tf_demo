@@ -58,7 +58,10 @@ class OldTfToNewTf(object):
         self.ddr.start(self.config_callback)
 
         # collect some transforms:
-        rospy.sleep(1.0)
+        try:
+            rospy.sleep(1.0)
+        except rospy.exceptions.ROSTimeMovedBackwardsException as ex:
+            rospy.logwarn(ex)
 
         self.timer = rospy.Timer(rospy.Duration(1.0 / update_rate), self.update, reset=True)
 
