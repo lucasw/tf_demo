@@ -111,7 +111,8 @@ struct CopyTransform
 
       const auto delta = (ts_in.header.stamp - last_lookup_time_).toSec();
       // TODO(lucasw) this seems to happen with sim time occasionally
-      if (delta < 1e-4) {
+      // need abs() to handle jumps back in time
+      if (std::fabs(delta) < 1e-4) {
         ROS_DEBUG_STREAM_THROTTLE(4.0, "very small delta time, skipping: "
                                        << (ts_in.header.stamp - last_lookup_time_).toSec() << "s");
         return false;
