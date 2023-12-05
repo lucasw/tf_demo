@@ -7,13 +7,56 @@
 
 import copy
 
+import numpy as np
 import rospy
 import tf2_ros
 import tf2_py as tf2
 # import traceback
 from ddynamic_reconfigure_python.ddynamic_reconfigure import DDynamicReconfigure
-from geometry_msgs.msg import TransformStamped
+from geometry_msgs.msg import (
+    Quaternion,
+    TransformStamped,
+)
+from tf import transformations
 from tf2_msgs.msg import TFMessage
+
+
+# move these to src/tf_demo/utility.py
+def default_quaternion() -> Quaternion:
+    return Quaternion(x=0.0, y=0.0, z=0.0, w=1.0)
+
+
+def align_z_axis(rot: Quaternion, flip: True) -> Quaternion:
+    """
+    make the z axis aligned with input rotation,
+    and then make the x-axis as close as possible to the (1, 0, 0) axis,
+    put it onto the xz plane,
+    while the y-axis can be anything to satisfy that
+
+    with flip True there will be a discontinuity but the x-axis will always be positive
+    """
+    rot_mat = transformations.quaternion_matrix([rot.x, rot.y, rot.z, rot.w])
+    z_axis = rot_mat[0:3, 2]
+    y_axis = np.array([0.0, 1.0, 0.0])
+    # TODO(lucasw) if z_axis is 1, 0, 0 this won't work
+    x_axis = np.cross(y_axis, z_axis)
+    try:
+        x_axis /= np.linalg.norm(x_axis)
+        if flip and x_axis[0] < 0.0:
+            # TODO(lucasw) this will be less smooth but closer to original intent
+            x_axis *= -1.0
+        # the x_axis won't be exactly 1, 0, 0 but this is as close as possible
+        y_axis = np.cross(z_axis, x_axis)
+
+        rot_mat = np.identity(4)
+        rot_mat[0:3, 0] = x_axis
+        rot_mat[0:3, 1] = y_axis
+        rot_mat[0:3, 2] = z_axis
+        quat = transformations.quaternion_from_matrix(rot_mat)
+        return Quaternion(quat[0], quat[1], quat[2], quat[3])
+    except Exception as ex:
+        rospy.logdebug_throttle(2.0, ex)
+        return rot
 
 
 class OldTfToNewTf(object):
@@ -47,6 +90,8 @@ class OldTfToNewTf(object):
         self.ddr.add_variable("broadcast_child", "broadcast child", "child2")
         # TODO(lucasw) zero roll, pitch, yaw?
         self.ddr.add_variable("zero_rotation", "zero out rotation", False)
+        self.ddr.add_variable("align_z", "align z axis but align x with 1,0,0 as much as possible", False)
+
         self.ddr.add_variable("zero_x", "zero out x", False)
         self.ddr.add_variable("zero_y", "zero out y", False)
         self.ddr.add_variable("zero_z", "zero out z", False)
@@ -97,10 +142,10 @@ class OldTfToNewTf(object):
         ts.header.stamp += rospy.Duration(config.broadcast_time_offset)
 
         if config.zero_rotation:
-            ts.transform.rotation.x = 0.0
-            ts.transform.rotation.y = 0.0
-            ts.transform.rotation.z = 0.0
-            ts.transform.rotation.w = 1.0
+            ts.transform.rotation = default_quaternion()
+        elif config.align_z:
+            ts.transform.rotation = align_z_axis(ts.transform.rotation)
+
         if config.zero_x:
             ts.transform.translation.x = 0.0
         if config.zero_y:
