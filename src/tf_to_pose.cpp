@@ -35,8 +35,8 @@ class TfToPose
   tf2_ros::TransformListener tf_listener_;
   ros::Publisher pose_pub_;
 
-  // double publish_rate_ = 20.0;
-  // ros::Timer timer_;
+  double update_period_ = 0.05;
+  ros::Timer timer_;
 
   std::unique_ptr<ddynamic_reconfigure::DDynamicReconfigure> ddr_;
 
@@ -45,10 +45,9 @@ class TfToPose
   bool lookup_time_most_recent_ = true;
   double lookup_time_offset_ = 0.0;
 
-  bool update()  // const ros::TimerEvent& te)
+  void update(const ros::TimerEvent& te)
   {
-    // auto cur_time = te.current_real;
-    const auto cur_time = ros::Time::now();
+    const auto cur_time = te.current_real;
     auto lookup_time = cur_time + ros::Duration(lookup_time_offset_);
     if (lookup_time_most_recent_) {
       lookup_time = ros::Time(0);
@@ -63,7 +62,7 @@ class TfToPose
       if (verbose) {
         ROS_WARN_STREAM_THROTTLE(8.0, "couldn't copy transform");
       }
-      return false;
+      return;  // false;
     }
 
     geometry_msgs::PoseStamped ps;
@@ -75,7 +74,7 @@ class TfToPose
 
     pose_pub_.publish(ps);
 
-    return true;
+    return;  // true;
   }
 
 public:
@@ -103,16 +102,7 @@ public:
     // collect some transforms
     ros::Duration(1.0).sleep();
 
-    while (ros::ok()) {
-      // This polls for a newer transform than the last update
-      if (update()) {
-        // having just updated don't need to update again immediately
-        ros::Duration(0.02).sleep();
-      } else {
-        // sleep but for a smaller duration and maybe new transforms will arrive
-        ros::Duration(0.002).sleep();
-      }
-    }
+    timer_ = nh_.createTimer(ros::Duration(update_period_), &TfToPose::update, this);
   }
 };
 }  // namespace tf_demo
