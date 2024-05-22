@@ -66,6 +66,12 @@ add_executable(tf_extrapolation_exception
 
 target_link_libraries(tf_extrapolation_exception ${catkin_LIBRARIES})
 
+add_executable(tf_to_pose
+  src/tf_to_pose.cpp
+)
+
+target_link_libraries(tf_to_pose ${catkin_LIBRARIES})
+
 add_executable(echo
   src/echo.cpp
 )
@@ -77,6 +83,7 @@ install(DIRECTORY include/${PROJECT_NAME}/
 
 install(TARGETS
   old_tf_to_new_tf
+  tf_to_pose
   ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
   LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
   RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
