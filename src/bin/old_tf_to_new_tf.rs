@@ -4,9 +4,10 @@ use std::time::SystemTime;
 use tf_roslibrust::{
     TfListener,
     tf_util,
+    transforms::tf2_msgs::TFMessage,
 };
 
-roslibrust_codegen_macro::find_and_generate_ros_messages!();
+// roslibrust_codegen_macro::find_and_generate_ros_messages!();
 
 /// Take in a source and destination frame argument
 /// and repeatedly print the transform between them if any
@@ -14,6 +15,7 @@ roslibrust_codegen_macro::find_and_generate_ros_messages!();
 #[tokio::main]
 async fn main() -> Result<(), anyhow::Error> {
     use roslibrust::ros1::NodeHandle;
+    use roslibrust::ros1::Publisher;
 
     // need to have leading slash on node name and topic to function properly
     // so figure out namespace then prefix it to name and topics
@@ -58,12 +60,14 @@ async fn main() -> Result<(), anyhow::Error> {
     // println!("{}", format!("full ns and node name: {full_node_name}"));
 
     let nh = NodeHandle::new(&std::env::var("ROS_MASTER_URI")?, full_node_name)
-        .await.unwrap();
+        .await?;
+
+    // TODO(lucasw) could use tf_broadcaster but it doesn't really add much
+    let tf_pub: Publisher<TFMessage> = nh.advertise("/tf", 100).await?;
 
     let mut listener = TfListener::new(&nh).await;
-    // let mut dynamic_subscriber = nh.subscribe::<tf2_msgs::TFMessage>("/tf", 100).await.unwrap();
 
-    let update_period = tokio::time::Duration::from_millis(1000);
+    let update_period = tokio::time::Duration::from_millis(50);
     let mut next_update = SystemTime::now();
 
     loop {
@@ -75,7 +79,7 @@ async fn main() -> Result<(), anyhow::Error> {
             if time_now > next_update {
                 remaining = tokio::time::Duration::from_secs(0);
             } else {
-                remaining = next_update.duration_since(time_now).unwrap();
+                remaining = next_update.duration_since(time_now)?;
             }
             remaining
         };
@@ -121,14 +125,15 @@ async fn main() -> Result<(), anyhow::Error> {
                 let stamp_now = tf_util::stamp_now();
                 match res {
                     Ok(tf) => {
-                        let cur_time = tf_util::stamp_to_f64(stamp_now);
-                        let lookup_time = tf_util::stamp_to_f64(tf.header.stamp);
-                        println!("At time {lookup_time:.3}, (current time {cur_time:.3}, {:.3}s old)", cur_time - lookup_time);
-                        println!("frame {} -> {}", tf.header.frame_id, tf.child_frame_id);
-                        let xyz = tf.transform.translation;
-                        println!("- Translation: [{:.3} {:.3} {:.3}]", xyz.x, xyz.y, xyz.z);
-                        let quat = tf.transform.rotation;
-                        println!("- Rotation: [{:.3} {:.3} {:.3} {:.3}]", quat.x, quat.y, quat.z, quat.w);
+                        // TODO(lucasw) if tf has the same stamp as the last update don't publish
+                        // it
+                        let mut tf_out = tf.clone();
+                        tf_out.header.frame_id = param_str["broadcast_parent"].clone();
+                        tf_out.child_frame_id = param_str["broadcast_child"].clone();
+                        let tfm = TFMessage {
+                            transforms: vec![tf_out],
+                        };
+                        tf_pub.publish(&tfm).await?;
                     },
                     Err(err) => { println!("{stamp_now:?} {err:?}"); },
                 }
