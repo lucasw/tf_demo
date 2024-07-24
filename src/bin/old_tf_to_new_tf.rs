@@ -1,21 +1,34 @@
 use std::collections::HashMap;
 use std::time::SystemTime;
 
+// use roslibrust::ros1::{Publisher, PublisherError};
+use roslibrust::ros1::NodeHandle;
+use roslibrust::ros1::Publisher;
 use tf_roslibrust::{
     TfListener,
     tf_util,
     transforms::tf2_msgs::TFMessage,
 };
 
-// roslibrust_codegen_macro::find_and_generate_ros_messages!();
+roslibrust_codegen_macro::find_and_generate_ros_messages!();
 
 /// Take in a source and destination frame argument
 /// and repeatedly print the transform between them if any
 
+/*
+async fn publish_any_tfm(
+    tf_pub: Publisher<TFMessage>,
+    tfm: &Option<TFMessage>
+    ) -> Option<Result<(), PublisherError>> {  // anyhow::Error>> {
+    match tfm {
+        Some(tfm) => Some(tf_pub.publish(tfm).await),
+        None => None,
+    }
+}
+*/
+
 #[tokio::main]
 async fn main() -> Result<(), anyhow::Error> {
-    use roslibrust::ros1::NodeHandle;
-    use roslibrust::ros1::Publisher;
 
     // need to have leading slash on node name and topic to function properly
     // so figure out namespace then prefix it to name and topics
@@ -79,15 +92,20 @@ async fn main() -> Result<(), anyhow::Error> {
                 println!("ctrl-c exiting");
                 break;
             }
+            // Some(_) = publish_any_tfm(tf_pub, tfm_to_publish) => {
+            //    tfm_to_publish = None;
+            // }
             // TODO(lucasw) move this into listener
             rv = listener._dynamic_subscriber.next() => {
                 // let t0 = tf_util::duration_now();
+                print!(".");
                 match rv {
                     Some(Ok(tfm)) => {
                         listener.update_tf(tfm);  // .await;
                     },
                     Some(Err(error)) => {
-                        panic!("{error}");
+                        // probably can't keep up with tf publish rate
+                        println!("{error}");
                     },
                     None => (),
                 }
@@ -95,6 +113,7 @@ async fn main() -> Result<(), anyhow::Error> {
                 // println!("{:?}", t1 - t0);  // this takes about 30 us
             }
             rv = listener._static_subscriber.next() => {
+                print!("+");
                 match rv {
                     Some(Ok(tfm)) => {
                         listener.update_tf_static(tfm);  // .await;
@@ -106,6 +125,7 @@ async fn main() -> Result<(), anyhow::Error> {
                 }
             }
             _ = update_interval.tick() => {
+                print!("[");
                 let t0 = tf_util::duration_now();
                 // let lookup_stamp = tf_util::stamp_now();
                 // TODO(lucasw) maybe just have a lookup_transform_recent function
@@ -137,6 +157,7 @@ async fn main() -> Result<(), anyhow::Error> {
                     Err(err) => { println!("{t1:?} {err:?}"); },
                 }
                 let t2 = tf_util::duration_now();
+                print!("]");
                 println!("lookup: {:?}, publish: {:?}", t1 - t0, t2 - t1); // the lookup takes about 220 us
             }
         }  // tokio select loop
