@@ -22,6 +22,8 @@ anyhow = "1.0.86"
 tokio = "1.38.0"
 
 [dependencies.roslibrust]
+# TODO(lucasw) may need to cargo clean when switching between these
+# path = "../../../../../../other/src/rust/roslibrust/roslibrust"
 git = "https://github.com/lucasw/roslibrust.git"
 branch = "master"
 # tag v0.10.1 on github is confirmed to work
@@ -31,12 +33,14 @@ branch = "master"
 features = ["ros1"]
 
 [dependencies.roslibrust_codegen]
+# path = "../../../../../../other/src/rust/roslibrust/roslibrust_codegen"
 git = "https://github.com/lucasw/roslibrust.git"
 branch = "master"
 # rev = "a1eb5a875906a26aa172a7465dd018858d191665"
 # branch = "time_ops"
 
 [dependencies.roslibrust_codegen_macro]
+# path = "../../../../../../other/src/rust/roslibrust/roslibrust_codegen_macro"
 git = "https://github.com/lucasw/roslibrust.git"
 branch = "master"
 # git = "https://github.com/lucasw/roslibrust.git"
