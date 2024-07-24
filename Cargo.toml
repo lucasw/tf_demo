@@ -45,5 +45,6 @@ branch = "master"
 
 # cargo update tf_roslibrust to get latest version in this branch
 [dependencies.tf_roslibrust]
-git = "https://github.com/lucasw/rustros_tf.git"
-branch = "roslibrust"
+path = "../../../../../../other/src/rust/rustros_tf/tf_roslibrust"
+# git = "https://github.com/lucasw/rustros_tf.git"
+# branch = "roslibrust"
