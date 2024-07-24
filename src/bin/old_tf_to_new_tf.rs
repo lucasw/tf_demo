@@ -67,23 +67,12 @@ async fn main() -> Result<(), anyhow::Error> {
 
     let mut listener = TfListener::new(&nh).await;
 
-    let update_period = tokio::time::Duration::from_millis(50);
-    let mut next_update = SystemTime::now();
+    // TODO(lucasw) this update period has a big effect on cpu usage
+    let mut update_interval = tokio::time::interval(tokio::time::Duration::from_millis(50));
+
+    let mut last_published_time = None;
 
     loop {
-        // sleep for remaining if nothing else interrupt select, or sleep for 0 seconds
-        // if already past scheduled update
-        let remaining = {
-            let time_now = SystemTime::now();
-            let remaining;
-            if time_now > next_update {
-                remaining = tokio::time::Duration::from_secs(0);
-            } else {
-                remaining = next_update.duration_since(time_now)?;
-            }
-            remaining
-        };
-
         tokio::select! {
             _ = tokio::signal::ctrl_c() => {
                 println!("ctrl-c exiting");
@@ -91,6 +80,7 @@ async fn main() -> Result<(), anyhow::Error> {
             }
             // TODO(lucasw) move this into listener
             rv = listener._dynamic_subscriber.next() => {
+                // let t0 = tf_util::duration_now();
                 match rv {
                     Some(Ok(tfm)) => {
                         listener.update_tf(tfm).await;
@@ -100,6 +90,8 @@ async fn main() -> Result<(), anyhow::Error> {
                     },
                     None => (),
                 }
+                // let t1 = tf_util::duration_now();
+                // println!("{:?}", t1 - t0);  // this takes about 30 us
             }
             rv = listener._static_subscriber.next() => {
                 match rv {
@@ -112,9 +104,8 @@ async fn main() -> Result<(), anyhow::Error> {
                     None => (),
                 }
             }
-            _ = tokio::time::sleep(remaining) => {
-                next_update += update_period;
-                // println!("update {remaining:?}");
+            _ = update_interval.tick() => {
+                let t0 = tf_util::duration_now();
                 // let lookup_stamp = tf_util::stamp_now();
                 // TODO(lucasw) maybe just have a lookup_transform_recent function
                 // TODO(lucasw) swapping position of frame 1 2 to match tf2_tools echo.py
@@ -122,21 +113,27 @@ async fn main() -> Result<(), anyhow::Error> {
                     &param_str["lookup_parent"],
                     &param_str["lookup_child"],
                     None);
-                let stamp_now = tf_util::stamp_now();
+                let t1 = tf_util::duration_now();
                 match res {
                     Ok(tf) => {
                         // TODO(lucasw) if tf has the same stamp as the last update don't publish
                         // it
                         let mut tf_out = tf.clone();
-                        tf_out.header.frame_id = param_str["broadcast_parent"].clone();
-                        tf_out.child_frame_id = param_str["broadcast_child"].clone();
-                        let tfm = TFMessage {
-                            transforms: vec![tf_out],
-                        };
-                        tf_pub.publish(&tfm).await?;
+                        let tf_out_time = tf_util::stamp_to_duration(tf_out.header.stamp.clone());
+                        if last_published_time.is_none() || (tf_out_time > last_published_time.unwrap()) {
+                            tf_out.header.frame_id = param_str["broadcast_parent"].clone();
+                            tf_out.child_frame_id = param_str["broadcast_child"].clone();
+                            let tfm = TFMessage {
+                                transforms: vec![tf_out],
+                            };
+                            tf_pub.publish(&tfm).await?;
+                            last_published_time = Some(tf_out_time);
+                        }
                     },
-                    Err(err) => { println!("{stamp_now:?} {err:?}"); },
+                    Err(err) => { println!("{t1:?} {err:?}"); },
                 }
+                let t2 = tf_util::duration_now();
+                println!("lookup: {:?}, publish: {:?}", t1 - t0, t2 - t1); // the lookup takes about 220 us
             }
         }  // tokio select loop
     }
