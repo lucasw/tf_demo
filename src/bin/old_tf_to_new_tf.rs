@@ -70,6 +70,7 @@ async fn main() -> Result<(), anyhow::Error> {
     // TODO(lucasw) this update period has a big effect on cpu usage
     let mut update_interval = tokio::time::interval(tokio::time::Duration::from_millis(50));
 
+    // let mut tfm_to_publish = None;
     let mut last_published_time = None;
 
     loop {
@@ -83,7 +84,7 @@ async fn main() -> Result<(), anyhow::Error> {
                 // let t0 = tf_util::duration_now();
                 match rv {
                     Some(Ok(tfm)) => {
-                        listener.update_tf(tfm).await;
+                        listener.update_tf(tfm);  // .await;
                     },
                     Some(Err(error)) => {
                         panic!("{error}");
@@ -96,7 +97,7 @@ async fn main() -> Result<(), anyhow::Error> {
             rv = listener._static_subscriber.next() => {
                 match rv {
                     Some(Ok(tfm)) => {
-                        listener.update_tf_static(tfm).await;
+                        listener.update_tf_static(tfm);  // .await;
                     },
                     Some(Err(error)) => {
                         panic!("{error}");
@@ -126,6 +127,9 @@ async fn main() -> Result<(), anyhow::Error> {
                             let tfm = TFMessage {
                                 transforms: vec![tf_out],
                             };
+                            // tfm_to_publish = Some(tfm);
+                            // TODO(lucasw) put this in outer select loop
+                            // https://play.rust-lang.org/?version=stable&mode=debug&edition=2021&gist=afadd00267e23a36b846ca97724dcbb0
                             tf_pub.publish(&tfm).await?;
                             last_published_time = Some(tf_out_time);
                         }
