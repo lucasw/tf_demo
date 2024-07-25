@@ -1,5 +1,4 @@
 use std::collections::HashMap;
-use std::time::SystemTime;
 
 // use roslibrust::ros1::{Publisher, PublisherError};
 use roslibrust::ros1::NodeHandle;
@@ -98,7 +97,7 @@ async fn main() -> Result<(), anyhow::Error> {
             // TODO(lucasw) move this into listener
             rv = listener._dynamic_subscriber.next() => {
                 // let t0 = tf_util::duration_now();
-                print!(".");
+                // print!(".");
                 match rv {
                     Some(Ok(tfm)) => {
                         listener.update_tf(tfm);  // .await;
@@ -113,7 +112,7 @@ async fn main() -> Result<(), anyhow::Error> {
                 // println!("{:?}", t1 - t0);  // this takes about 30 us
             }
             rv = listener._static_subscriber.next() => {
-                print!("+");
+                // print!("+");
                 match rv {
                     Some(Ok(tfm)) => {
                         listener.update_tf_static(tfm);  // .await;
@@ -125,7 +124,7 @@ async fn main() -> Result<(), anyhow::Error> {
                 }
             }
             _ = update_interval.tick() => {
-                print!("[");
+                // print!("[");
                 let t0 = tf_util::duration_now();
                 // let lookup_stamp = tf_util::stamp_now();
                 // TODO(lucasw) maybe just have a lookup_transform_recent function
@@ -140,7 +139,7 @@ async fn main() -> Result<(), anyhow::Error> {
                         // TODO(lucasw) if tf has the same stamp as the last update don't publish
                         // it
                         let mut tf_out = tf.clone();
-                        let tf_out_time = tf_util::stamp_to_duration(tf_out.header.stamp.clone());
+                        let tf_out_time = tf_util::stamp_to_duration(&tf_out.header.stamp);
                         if last_published_time.is_none() || (tf_out_time > last_published_time.unwrap()) {
                             tf_out.header.frame_id = param_str["broadcast_parent"].clone();
                             tf_out.child_frame_id = param_str["broadcast_child"].clone();
@@ -154,11 +153,11 @@ async fn main() -> Result<(), anyhow::Error> {
                             last_published_time = Some(tf_out_time);
                         }
                     },
-                    Err(err) => { println!("{t1:?} {err:?}"); },
+                    Err(err) => { println!("{t1:?} {t0:?} {err:?}"); },
                 }
-                let t2 = tf_util::duration_now();
-                print!("]");
-                println!("lookup: {:?}, publish: {:?}", t1 - t0, t2 - t1); // the lookup takes about 220 us
+                // let t2 = tf_util::duration_now();
+                // print!("]");
+                // println!("lookup: {:?}, publish: {:?}", t1 - t0, t2 - t1); // the lookup takes about 220 us
             }
         }  // tokio select loop
     }
