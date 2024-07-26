@@ -1,8 +1,8 @@
-use std::collections::HashMap;
+/// Take in a source and destination frame argument
+/// and repeatedly print the transform between them if any
 
-// use roslibrust::ros1::{Publisher, PublisherError};
-use roslibrust::ros1::NodeHandle;
-use roslibrust::ros1::Publisher;
+use roslibrust::ros1::{NodeHandle, Publisher};
+use std::collections::HashMap;
 use tf_roslibrust::{
     TfListener,
     tf_util,
@@ -10,21 +10,6 @@ use tf_roslibrust::{
 };
 
 roslibrust_codegen_macro::find_and_generate_ros_messages!();
-
-/// Take in a source and destination frame argument
-/// and repeatedly print the transform between them if any
-
-/*
-async fn publish_any_tfm(
-    tf_pub: Publisher<TFMessage>,
-    tfm: &Option<TFMessage>
-    ) -> Option<Result<(), PublisherError>> {  // anyhow::Error>> {
-    match tfm {
-        Some(tfm) => Some(tf_pub.publish(tfm).await),
-        None => None,
-    }
-}
-*/
 
 #[tokio::main]
 async fn main() -> Result<(), anyhow::Error> {
@@ -40,6 +25,7 @@ async fn main() -> Result<(), anyhow::Error> {
     param_str.insert("broadcast_parent".to_string(), "map".to_string());
     param_str.insert("broadcast_child".to_string(), "tmp".to_string());
 
+    // TODO(lucasw) can an existing rust arg handling library handle the ':=' ros cli args?
     let args = std::env::args();
     let mut args2 = Vec::new();
     {
@@ -61,13 +47,14 @@ async fn main() -> Result<(), anyhow::Error> {
             if key == "_ns" {
                ns = val;
             } else if param_str.contains_key(&key) {
-                param_str.insert(key, val);  // .to_string();
+                param_str.insert(key, val);
             }
         }
     }
     println!("{args2:?}");
     println!("{param_str:?}");
 
+    // TODO(lucasw) look for a '__name:=' argument
     let full_node_name = &format!("/{ns}/tf2tf").replace("//", "/");
     // println!("{}", format!("full ns and node name: {full_node_name}"));
 
@@ -79,10 +66,8 @@ async fn main() -> Result<(), anyhow::Error> {
 
     let mut listener = TfListener::new(&nh).await;
 
-    // TODO(lucasw) this update period has a big effect on cpu usage
     let mut update_interval = tokio::time::interval(tokio::time::Duration::from_millis(50));
 
-    // let mut tfm_to_publish = None;
     let mut last_published_time = None;
 
     loop {
@@ -91,9 +76,6 @@ async fn main() -> Result<(), anyhow::Error> {
                 println!("ctrl-c exiting");
                 break;
             }
-            // Some(_) = publish_any_tfm(tf_pub, tfm_to_publish) => {
-            //    tfm_to_publish = None;
-            // }
             // TODO(lucasw) move this into listener
             rv = listener._dynamic_subscriber.next() => {
                 // let t0 = tf_util::duration_now();
@@ -109,7 +91,7 @@ async fn main() -> Result<(), anyhow::Error> {
                     None => (),
                 }
                 // let t1 = tf_util::duration_now();
-                // println!("{:?}", t1 - t0);  // this takes about 30 us
+                // println!("{:?}", t1 - t0);
             }
             rv = listener._static_subscriber.next() => {
                 // print!("+");
@@ -126,9 +108,6 @@ async fn main() -> Result<(), anyhow::Error> {
             _ = update_interval.tick() => {
                 // print!("[");
                 let t0 = tf_util::duration_now();
-                // let lookup_stamp = tf_util::stamp_now();
-                // TODO(lucasw) maybe just have a lookup_transform_recent function
-                // TODO(lucasw) swapping position of frame 1 2 to match tf2_tools echo.py
                 let res = listener.lookup_transform(
                     &param_str["lookup_parent"],
                     &param_str["lookup_child"],
@@ -136,8 +115,7 @@ async fn main() -> Result<(), anyhow::Error> {
                 let t1 = tf_util::duration_now();
                 match res {
                     Ok(tf) => {
-                        // TODO(lucasw) if tf has the same stamp as the last update don't publish
-                        // it
+                        // if tf has the same or older stamp the last update don't publish
                         let mut tf_out = tf.clone();
                         let tf_out_time = tf_util::stamp_to_duration(&tf_out.header.stamp);
                         if last_published_time.is_none() || (tf_out_time > last_published_time.unwrap()) {
@@ -146,9 +124,6 @@ async fn main() -> Result<(), anyhow::Error> {
                             let tfm = TFMessage {
                                 transforms: vec![tf_out],
                             };
-                            // tfm_to_publish = Some(tfm);
-                            // TODO(lucasw) put this in outer select loop
-                            // https://play.rust-lang.org/?version=stable&mode=debug&edition=2021&gist=afadd00267e23a36b846ca97724dcbb0
                             tf_pub.publish(&tfm).await?;
                             last_published_time = Some(tf_out_time);
                         }
@@ -157,7 +132,7 @@ async fn main() -> Result<(), anyhow::Error> {
                 }
                 // let t2 = tf_util::duration_now();
                 // print!("]");
-                // println!("lookup: {:?}, publish: {:?}", t1 - t0, t2 - t1); // the lookup takes about 220 us
+                // println!("lookup: {:?}, publish: {:?}", t1 - t0, t2 - t1);
             }
         }  // tokio select loop
     }
