@@ -8,8 +8,8 @@ publish = false
 description = """
 Utilities for use with ros tf
 
-old_tf_to_new_tf is node that looks up the transform between any two frames
-and publishes out that transform with a new parent and child (it's up to the user
+tf2tf (called old_tf_to_new_tf in C++ and python versions) is node that looks up the transform between
+any two frames and publishes out that transform with a new parent and child (it's up to the user
 to prevent conflicts if the child already exists)
 """
 

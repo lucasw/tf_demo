@@ -68,7 +68,7 @@ async fn main() -> Result<(), anyhow::Error> {
     println!("{args2:?}");
     println!("{param_str:?}");
 
-    let full_node_name = &format!("/{ns}/old_tf_to_new_tf").replace("//", "/");
+    let full_node_name = &format!("/{ns}/tf2tf").replace("//", "/");
     // println!("{}", format!("full ns and node name: {full_node_name}"));
 
     let nh = NodeHandle::new(&std::env::var("ROS_MASTER_URI")?, full_node_name)
