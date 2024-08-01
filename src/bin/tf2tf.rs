@@ -76,35 +76,7 @@ async fn main() -> Result<(), anyhow::Error> {
                 println!("ctrl-c exiting");
                 break;
             }
-            // TODO(lucasw) move this into listener
-            rv = listener._dynamic_subscriber.next() => {
-                // let t0 = tf_util::duration_now();
-                // print!(".");
-                match rv {
-                    Some(Ok(tfm)) => {
-                        listener.update_tf(tfm);  // .await;
-                    },
-                    Some(Err(error)) => {
-                        // probably can't keep up with tf publish rate
-                        println!("{error}");
-                    },
-                    None => (),
-                }
-                // let t1 = tf_util::duration_now();
-                // println!("{:?}", t1 - t0);
-            }
-            rv = listener._static_subscriber.next() => {
-                // print!("+");
-                match rv {
-                    Some(Ok(tfm)) => {
-                        listener.update_tf_static(tfm);  // .await;
-                    },
-                    Some(Err(error)) => {
-                        panic!("{error}");
-                    },
-                    None => (),
-                }
-            }
+            _ = listener.update() => {},
             _ = update_interval.tick() => {
                 // print!("[");
                 let t0 = tf_util::duration_now();
