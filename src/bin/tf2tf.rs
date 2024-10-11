@@ -1,9 +1,11 @@
+/// DEPRECATED, using tf2tf in tf_roslibrust now
 /// Take in a source and destination frame argument
 /// and repeatedly print the transform between them if any
 
 use roslibrust::ros1::{NodeHandle, Publisher};
 use std::collections::HashMap;
 use tf_roslibrust::{
+    LookupTransform;
     TfListener,
     tf_util,
     transforms::tf2_msgs::TFMessage,
