@@ -26,7 +26,7 @@ def default_quaternion() -> Quaternion:
     return Quaternion(x=0.0, y=0.0, z=0.0, w=1.0)
 
 
-def align_z_axis(rot: Quaternion, flip: True) -> Quaternion:
+def align_z_axis(rot: Quaternion, flip=True) -> Quaternion:
     """
     make the z axis aligned with input rotation,
     and then make the x-axis as close as possible to the (1, 0, 0) axis,
