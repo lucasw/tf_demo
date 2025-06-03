@@ -22,27 +22,27 @@ anyhow = "1.0.86"
 tokio = "1.38.0"
 
 [dependencies.roslibrust]
-version="0.10.2"
+# version="0.10.2"
 # TODO(lucasw) may need to cargo clean when switching between these
 # path = "../../../../../../other/src/rust/roslibrust/roslibrust"
-# git = "https://github.com/lucasw/roslibrust.git"
-# branch = "master"
+git = "https://github.com/lucasw/roslibrust.git"
+branch = "get_rx_msg_def"
 # rev = "a1eb5a875906a26aa172a7465dd018858d191665"
 # branch = "time_ops"
 features = ["ros1"]
 
 [dependencies.roslibrust_codegen]
-version="0.10"
+# version="0.10"
 # path = "../../../../../../other/src/rust/roslibrust/roslibrust_codegen"
-# git = "https://github.com/lucasw/roslibrust.git"
-# branch = "master"
+git = "https://github.com/lucasw/roslibrust.git"
+branch = "get_rx_msg_def"
 # rev = "a1eb5a875906a26aa172a7465dd018858d191665"
 
 [dependencies.roslibrust_codegen_macro]
-version="0.10"
+# version="0.10"
 # path = "../../../../../../other/src/rust/roslibrust/roslibrust_codegen_macro"
-# git = "https://github.com/lucasw/roslibrust.git"
-# branch = "master"
+git = "https://github.com/lucasw/roslibrust.git"
+branch = "get_rx_msg_def"
 # git = "https://github.com/lucasw/roslibrust.git"
 # rev = "a1eb5a875906a26aa172a7465dd018858d191665"
 
